@@ -8,13 +8,6 @@ let polyline;
 let currentLightboxImages = [];
 let currentLightboxIndex = 0;
 
-// Variables globales déchiffrées
-let TRIP_CONFIG = null;
-let TRIP_STAGES = null;
-let DAILY_PROGRAM = null;
-let TRIP_FLIGHTS = null;
-let INITIAL_GUESTBOOK = null;
-
 document.addEventListener('DOMContentLoaded', () => {
     initSecurityGate();
 });
@@ -107,9 +100,10 @@ function initSecurityGate() {
 
             const rawJs = await decryptPayload(pass, ENCRYPTED_TRIP_PAYLOAD);
 
-            // Exécution sécurisée du script déchiffré dans le scope global
-            const scriptFunction = new Function(rawJs);
-            scriptFunction();
+            // Injection du script déchiffré directement dans le DOM pour que toutes les variables globales existent
+            const scriptEl = document.createElement('script');
+            scriptEl.textContent = rawJs;
+            document.head.appendChild(scriptEl);
 
             if (saveOnSuccess) {
                 localStorage.setItem('polynesie_family_token', pass);
@@ -123,7 +117,7 @@ function initSecurityGate() {
             launchApplication();
             return true;
         } catch (err) {
-            console.warn("Mot de passe incorrect ou échec du déchiffrement");
+            console.error("Erreur lors du déchiffrement :", err);
             return false;
         }
     }
@@ -135,11 +129,20 @@ function launchApplication() {
     renderStagesRibbon();
     renderFlightsList();
     initMap();
-    renderTimeline(TRIP_STAGES);
+    if (typeof TRIP_STAGES !== 'undefined') {
+        renderTimeline(TRIP_STAGES);
+    }
     renderFilters();
     renderGallery();
     initGuestbook();
     initLightbox();
+
+    // Recalculer la taille de la carte Leaflet après affichage du conteneur
+    setTimeout(() => {
+        if (map) {
+            map.invalidateSize();
+        }
+    }, 200);
 }
 
 // -----------------------------------------------------------------------------
