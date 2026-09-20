@@ -1,5 +1,6 @@
 // =============================================================================
-// APPLICATION PRINCIPALE - CARNET DE VOYAGE POLYNÉSIE (SÉCURISÉ AES-256)
+// APPLICATION PRINCIPALE - CARNET DE VOYAGE POLYNÉSIE 2026
+// Navigation Fluide, Cartes Épurées, Modales Détaillées & Zéro Blocage
 // =============================================================================
 
 let map;
@@ -7,122 +8,21 @@ let markers = [];
 let polyline;
 let currentLightboxImages = [];
 let currentLightboxIndex = 0;
+let cardsDisplayMode = 'compact'; // 'compact' (épuré) ou 'expanded' (tout déplié)
+let currentFilter = 'all';
+let currentSearchQuery = '';
 
+// Démarrage direct dès le chargement du DOM sans barrière ni friction
 document.addEventListener('DOMContentLoaded', () => {
-    initSecurityGate();
+    launchApplication();
+    initBackToTop();
+    initSearchListener();
 });
 
 // -----------------------------------------------------------------------------
-// SÉCURITÉ & DÉCHIFFREMENT DU VOYAGE (Web Crypto API)
+// 1. Initialisation Principale
 // -----------------------------------------------------------------------------
-async function decryptPayload(password, encryptedObj) {
-    const enc = new TextEncoder();
-    const dec = new TextDecoder();
-
-    // Décodage Base64
-    const salt = Uint8Array.from(atob(encryptedObj.salt), c => c.charCodeAt(0));
-    const iv = Uint8Array.from(atob(encryptedObj.iv), c => c.charCodeAt(0));
-    const ciphertext = Uint8Array.from(atob(encryptedObj.data), c => c.charCodeAt(0));
-
-    // Dérivation de la clé avec PBKDF2 (100 000 itérations SHA-256)
-    const baseKey = await crypto.subtle.importKey(
-        "raw",
-        enc.encode(password),
-        { name: "PBKDF2" },
-        false,
-        ["deriveKey"]
-    );
-
-    const key = await crypto.subtle.deriveKey(
-        {
-            name: "PBKDF2",
-            salt: salt,
-            iterations: 100000,
-            hash: "SHA-256"
-        },
-        baseKey,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["decrypt"]
-    );
-
-    // Déchiffrement AES-GCM (échoue automatiquement si le mot de passe est faux)
-    const decryptedBuffer = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: iv },
-        key,
-        ciphertext
-    );
-
-    return dec.decode(decryptedBuffer);
-}
-
-function initSecurityGate() {
-    const passwordScreen = document.getElementById('password-screen');
-    const appContent = document.getElementById('app-content');
-    const form = document.getElementById('unlock-form');
-    const input = document.getElementById('trip-password');
-    const errorEl = document.getElementById('password-error');
-    const btn = document.getElementById('unlock-btn');
-
-    // Vérifier si un mot de passe valide est déjà mémorisé dans la session locale
-    const savedPass = localStorage.getItem('polynesie_family_token');
-    if (savedPass && typeof ENCRYPTED_TRIP_PAYLOAD !== 'undefined') {
-        attemptUnlock(savedPass, false);
-    }
-
-    if (form) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const pass = input.value.trim();
-            if (!pass) return;
-
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Déverrouillage...`;
-            errorEl.classList.add('hidden');
-
-            const success = await attemptUnlock(pass, true);
-            if (!success) {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-key"></i> Déverrouiller le voyage`;
-                errorEl.classList.remove('hidden');
-                input.value = '';
-                input.focus();
-            }
-        });
-    }
-
-    async function attemptUnlock(pass, saveOnSuccess) {
-        try {
-            if (typeof ENCRYPTED_TRIP_PAYLOAD === 'undefined') {
-                console.error("Données chiffrées introuvables");
-                return false;
-            }
-
-            const rawJs = await decryptPayload(pass, ENCRYPTED_TRIP_PAYLOAD);
-
-            // Injection et exécution immédiate du script déchiffré
-            window.eval(rawJs);
-
-            if (saveOnSuccess) {
-                localStorage.setItem('polynesie_family_token', pass);
-            }
-
-            // Afficher le site
-            if (passwordScreen) passwordScreen.classList.add('hidden');
-            if (appContent) appContent.classList.remove('hidden');
-
-            // Lancer l'application complète
-            launchApplication();
-            return true;
-        } catch (err) {
-            console.error("Erreur lors du déchiffrement :", err);
-            return false;
-        }
-    }
-}
-
 function launchApplication() {
-    // S'assurer que les données du voyage sont disponibles
     const stages = window.TRIP_STAGES || [];
     
     initHeroData();
@@ -131,12 +31,13 @@ function launchApplication() {
     renderStagesRibbon();
     renderFlightsList();
     initMap();
-    renderTimeline(stages);
+    renderTimeline();
     renderFilters();
     renderGallery();
     initLightbox();
+    initModalKeyListeners();
 
-    // Recalculer la taille de la carte Leaflet après affichage du conteneur
+    // Recalcul de la taille de la carte Leaflet
     setTimeout(() => {
         if (map) {
             map.invalidateSize();
@@ -144,1101 +45,690 @@ function launchApplication() {
                 map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
             }
         }
-    }, 300);
+    }, 400);
 }
 
 // -----------------------------------------------------------------------------
-// 1. En-tête & Informations Générales
+// 2. En-tête & Informations Générales
 // -----------------------------------------------------------------------------
 function initHeroData() {
+    if (typeof TRIP_CONFIG === 'undefined') return;
+
     const titleEl = document.getElementById('trip-title');
     const travelersEl = document.getElementById('trip-travelers');
     const descEl = document.getElementById('trip-desc');
-    const liveIslandEl = document.getElementById('live-island');
-    const countdownEl = document.getElementById('live-countdown');
 
-    if (titleEl) titleEl.textContent = TRIP_CONFIG.tripTitle;
-    if (travelersEl) travelersEl.textContent = TRIP_CONFIG.travelers;
-    if (descEl) descEl.textContent = TRIP_CONFIG.description;
-
-    const today = new Date();
-    const start = new Date("2026-10-09T12:05:00+02:00");
-    const end = new Date("2026-11-01T09:05:00+01:00");
-    
-    // Étape active
-    const currentStage = (typeof TRIP_STAGES !== 'undefined') ? (TRIP_STAGES.find(s => s.status === 'current') || TRIP_STAGES[0]) : null;
-
-    if (liveIslandEl && currentStage) {
-        if (today < start) {
-            liveIslandEl.innerHTML = `✈️ Cap vers la Polynésie le <strong>09 Octobre 2026</strong> ! Première étape : <strong>Vol TN57 Paris ➔ Tahiti</strong>`;
-        } else if (today >= start && today <= end) {
-            const dayNum = Math.min(22, Math.max(1, Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1));
-            const todayProgram = (typeof DAILY_PROGRAM !== 'undefined') ? (DAILY_PROGRAM.find(d => d.dayNumber === dayNum) || DAILY_PROGRAM[0]) : null;
-            const islandName = todayProgram ? todayProgram.island : currentStage.island;
-            liveIslandEl.innerHTML = `📍 Étape en direct : <strong>${islandName}</strong> — ${todayProgram ? todayProgram.title : currentStage.title}`;
-        } else {
-            liveIslandEl.innerHTML = `🌺 Voyage réalisé — De merveilleux souvenirs en famille`;
-        }
-    }
-
-    if (countdownEl) {
-        if (today < start) {
-            const diffDays = Math.ceil((start - today) / (1000 * 60 * 60 * 24));
-            countdownEl.innerHTML = `⏳ Décollage dans <strong>${diffDays} jours</strong> !`;
-        } else if (today >= start && today <= end) {
-            const dayNum = Math.min(22, Math.max(1, Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1));
-            countdownEl.innerHTML = `🌺 <strong>Jour ${dayNum} / 22</strong> au paradis !`;
-        } else {
-            countdownEl.innerHTML = `🌴 <strong>Voyage inoubliable terminé</strong> — 22 jours gravés !`;
-        }
-    }
+    if (titleEl && TRIP_CONFIG.tripTitle) titleEl.textContent = TRIP_CONFIG.tripTitle;
+    if (travelersEl && TRIP_CONFIG.travelers) travelersEl.textContent = TRIP_CONFIG.travelers;
+    if (descEl && TRIP_CONFIG.description) descEl.textContent = TRIP_CONFIG.description;
 }
 
 // -----------------------------------------------------------------------------
-// 1.b Compte à Rebours Dynamique Adaptatif (Avant, Pendant & Après Voyage)
+// 3. Compte à Rebours Dynamique & Statut en Direct
 // -----------------------------------------------------------------------------
 function initLiveCountdown() {
-    const departureTime = new Date("2026-10-09T12:05:00+02:00").getTime();
-    const returnTime = new Date("2026-11-01T09:05:00+01:00").getTime();
+    const start = new Date("2026-10-09T12:05:00+02:00");
+    const end = new Date("2026-11-01T09:05:00+01:00");
 
-    const daysEl = document.getElementById('count-days');
-    const hoursEl = document.getElementById('count-hours');
-    const minutesEl = document.getElementById('count-minutes');
-    const secondsEl = document.getElementById('count-seconds');
+    function update() {
+        const now = new Date();
+        const diffToStart = start - now;
+        const diffToEnd = end - now;
 
-    const daysLabel = document.getElementById('count-days-label');
-    const hoursLabel = document.getElementById('count-hours-label');
-    const minutesLabel = document.getElementById('count-minutes-label');
-    const secondsLabel = document.getElementById('count-seconds-label');
+        const countTitle = document.getElementById('countdown-title');
+        const countDays = document.getElementById('count-days');
+        const countHours = document.getElementById('count-hours');
+        const countMinutes = document.getElementById('count-minutes');
+        const countSeconds = document.getElementById('count-seconds');
+        const flightInfo = document.getElementById('countdown-flight-info');
 
-    const titleEl = document.getElementById('countdown-title');
-    const indicatorEl = document.getElementById('countdown-indicator');
-    const infoEl = document.getElementById('countdown-flight-info');
+        if (diffToStart > 0) {
+            // Avant le départ
+            const d = Math.floor(diffToStart / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diffToStart / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diffToStart / (1000 * 60)) % 60);
+            const s = Math.floor((diffToStart / 1000) % 60);
 
-    const progressContainer = document.getElementById('trip-progress-container');
-    const progressBar = document.getElementById('trip-progress-bar');
-    const progressPct = document.getElementById('trip-progress-pct');
-    const progressStatus = document.getElementById('trip-progress-status');
+            if (countTitle) countTitle.textContent = "Décollage dans";
+            if (countDays) countDays.textContent = d;
+            if (countHours) countHours.textContent = h.toString().padStart(2, '0');
+            if (countMinutes) countMinutes.textContent = m.toString().padStart(2, '0');
+            if (countSeconds) countSeconds.textContent = s.toString().padStart(2, '0');
+            if (flightInfo) flightInfo.innerHTML = `<i class="fas fa-plane-departure text-amber-300"></i> Vol Air Tahiti Nui TN57 • Départ Paris CDG le 09/10/2026 à 12h05`;
+        } else if (diffToEnd > 0) {
+            // Pendant le voyage
+            const totalDuration = end - start;
+            const elapsed = now - start;
+            const pct = Math.min(100, Math.max(0, Math.round((elapsed / totalDuration) * 100)));
 
-    if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+            const d = Math.floor(diffToEnd / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diffToEnd / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diffToEnd / (1000 * 60)) % 60);
+            const s = Math.floor((diffToEnd / 1000) % 60);
 
-    function updateTimer() {
-        const now = new Date().getTime();
-
-        // ---------------------------------------------------------------------
-        // CAS 1 : AVANT LE VOYAGE (Compte à rebours précis jusqu'au vol TN57)
-        // ---------------------------------------------------------------------
-        if (now < departureTime) {
-            const diff = departureTime - now;
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-            daysEl.textContent = String(days).padStart(2, '0');
-            hoursEl.textContent = String(hours).padStart(2, '0');
-            minutesEl.textContent = String(minutes).padStart(2, '0');
-            secondsEl.textContent = String(seconds).padStart(2, '0');
-
-            if (daysLabel) daysLabel.textContent = "Jours";
-            if (hoursLabel) hoursLabel.textContent = "Heures";
-            if (minutesLabel) minutesLabel.textContent = "Minutes";
-            if (secondsLabel) secondsLabel.textContent = "Secondes";
-
-            if (titleEl) titleEl.textContent = "Décollage dans";
-            if (indicatorEl) indicatorEl.className = "inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping";
-            if (progressContainer) progressContainer.classList.add('hidden');
-
-            if (infoEl) {
-                infoEl.innerHTML = `<i class="fas fa-plane-departure text-amber-300"></i> Vol Air Tahiti Nui TN57 • Départ Paris CDG le 09/10/2026 à 12h05`;
-            }
-        }
-        // ---------------------------------------------------------------------
-        // CAS 2 : PENDANT LE VOYAGE (Suivi en direct du périple : Jour X / 22)
-        // ---------------------------------------------------------------------
-        else if (now >= departureTime && now < returnTime) {
-            const dayNum = Math.min(22, Math.max(1, Math.floor((now - departureTime) / (1000 * 60 * 60 * 24)) + 1));
-            const remainingDays = Math.max(0, 22 - dayNum);
-            const pct = Math.round((dayNum / 22) * 100);
-
-            // Boîtes adaptatives
-            daysEl.textContent = `J${dayNum}`;
-            hoursEl.textContent = "22";
-            minutesEl.textContent = `${remainingDays}j`;
-            secondsEl.textContent = `${pct}%`;
-
-            if (daysLabel) daysLabel.textContent = "Jour actuel";
-            if (hoursLabel) hoursLabel.textContent = "Total jours";
-            if (minutesLabel) minutesLabel.textContent = "Restants";
-            if (secondsLabel) secondsLabel.textContent = "Parcours";
-
-            if (titleEl) titleEl.innerHTML = `<span class="text-amber-300 font-bold">🌺 VOYAGE EN COURS ! • EN DIRECT DU PACIFIQUE</span>`;
-            if (indicatorEl) indicatorEl.className = "inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
-
-            // Barre de progression
-            if (progressContainer) progressContainer.classList.remove('hidden');
-            if (progressBar) progressBar.style.width = `${pct}%`;
-            if (progressPct) progressPct.textContent = `${pct}%`;
-            if (progressStatus) progressStatus.textContent = `Journée ${dayNum} sur 22 au paradis`;
-
-            // Informations du jour tirées du programme quotidien
-            if (infoEl && typeof DAILY_PROGRAM !== 'undefined') {
-                const todayInfo = DAILY_PROGRAM.find(d => d.dayNumber === dayNum) || DAILY_PROGRAM[0];
-                infoEl.innerHTML = `
-                    <span class="inline-flex items-center gap-1.5 bg-black/30 backdrop-blur-md px-3 py-1 rounded-full text-xs text-amber-300">
-                        <i class="fas fa-compass fa-spin"></i> <strong>Aujourd'hui :</strong> ${todayInfo.title} (📍 ${todayInfo.island})
-                    </span>
-                `;
-            }
-        }
-        // ---------------------------------------------------------------------
-        // CAS 3 : APRÈS LE VOYAGE (Bilan inoubliable des 22 jours)
-        // ---------------------------------------------------------------------
-        else {
-            daysEl.textContent = "22";
-            hoursEl.textContent = "6";
-            minutesEl.textContent = "15";
-            secondsEl.textContent = "100%";
-
-            if (daysLabel) daysLabel.textContent = "Jours vécus";
-            if (hoursLabel) hoursLabel.textContent = "Îles visitées";
-            if (minutesLabel) minutesLabel.textContent = "Étapes & Vols";
-            if (secondsLabel) secondsLabel.textContent = "Bonheur pur";
-
-            if (titleEl) titleEl.textContent = "Voyage inoubliable terminé";
-            if (indicatorEl) indicatorEl.className = "inline-block w-2.5 h-2.5 rounded-full bg-rose-400";
-
-            if (progressContainer) progressContainer.classList.remove('hidden');
-            if (progressBar) progressBar.style.width = "100%";
-            if (progressPct) progressPct.textContent = "100%";
-            if (progressStatus) progressStatus.textContent = "22 jours au paradis accomplis";
-
-            if (infoEl) {
-                infoEl.innerHTML = `<span class="text-teal-200">🌴 22 jours de souvenirs magiques en famille gravés à tout jamais ! Retrouvez nos photos ci-dessous.</span>`;
-            }
+            if (countTitle) countTitle.textContent = "Voyage en cours ! Reste";
+            if (countDays) countDays.textContent = d;
+            if (countHours) countHours.textContent = h.toString().padStart(2, '0');
+            if (countMinutes) countMinutes.textContent = m.toString().padStart(2, '0');
+            if (countSeconds) countSeconds.textContent = s.toString().padStart(2, '0');
+            if (flightInfo) flightInfo.innerHTML = `🌊 Échappée polynésienne en direct • Progression du périple : <strong>${pct}%</strong>`;
+        } else {
+            // Après le voyage
+            if (countTitle) countTitle.textContent = "Voyage terminé";
+            if (countDays) countDays.textContent = "0";
+            if (countHours) countHours.textContent = "00";
+            if (countMinutes) countMinutes.textContent = "00";
+            if (countSeconds) countSeconds.textContent = "00";
+            if (flightInfo) flightInfo.innerHTML = `🌺 Des souvenirs inoubliables plein les yeux et le cœur !`;
         }
     }
 
-    updateTimer();
-    setInterval(updateTimer, 1000);
+    update();
+    setInterval(update, 1000);
 }
 
 // -----------------------------------------------------------------------------
-// 1.c Horloge Internationale & Décalage Horaire par Étape
+// 4. Horloge Internationale Interactive (Double Cadran Paris ↔ Polynésie)
 // -----------------------------------------------------------------------------
-let selectedClockZone = 'tahiti';
+let currentClockZone = 'tahiti';
 
 const CLOCK_ZONES = {
     tahiti: {
         tz: 'Pacific/Tahiti',
-        name: 'Pacific/Tahiti',
-        label: '🌺 Polynésie (Tahiti & Îles)',
-        tag: 'UTC-10',
-        tips: 'Grand décalage : privilégier une sieste vers 13h et profiter des matinées lumineuses dès 5h30.',
-        activities: [
-            { start: 5, end: 7, icon: '🌅', title: 'Lever du jour tropical', desc: 'Le lagon s\'éveille, petit-déjeuner au soleil levant et premiers chants d\'oiseaux.' },
-            { start: 7, end: 11, icon: '☀️', title: 'Matinée Lagon & Excursions', desc: 'Idéal pour le snorkeling, les sorties pirogue ou la baignade avec les raies.' },
-            { start: 11, end: 14, icon: '🍍', title: 'Déjeuner local & Chaleur tropicale', desc: 'Poisson cru Ia Ota au lait de coco, fruits frais et pause ombragée.' },
-            { start: 14, end: 17, icon: '🏖️', title: 'Après-midi Plage & Sieste famille', desc: 'Détente les pieds dans l\'eau calme des motus ou lecture sous les cocotiers.' },
-            { start: 17, end: 19, icon: '🌇', title: 'Coucher de soleil féerique', desc: 'Ciel embrasé sur l\'océan, apéritif au son doux du ukulélé.' },
-            { start: 19, end: 22, icon: '🌺', title: 'Dîner & Soirée insulaire', desc: 'Dîner sous les étoiles, chants traditionnels ou roulottes de bord de mer.' },
-            { start: 22, end: 5, icon: '🌙', title: 'Nuit tropicale étoilée', desc: 'Tout le monde dort bercé par le ressac lointain de la barrière de corail.' }
-        ]
+        name: '🌺 Tahiti / Moorea / Tuamotu',
+        abbr: 'UTC-10',
+        diffHours: -12,
+        tips: 'Sieste de 13h recommandée pour les jumeaux et bébé afin d\'absorber les 12h de décalage.'
     },
     marquises: {
         tz: 'Pacific/Marquesas',
-        name: 'Pacific/Marquesas',
-        label: '🗿 Îles Marquises (Terre des Hommes)',
-        tag: 'UTC-9h30',
-        tips: 'Fuseau spécifique des Marquises avec 30 minutes de différence par rapport à Tahiti.',
-        activities: [
-            { start: 5, end: 8, icon: '🌄', title: 'Matinée sur les crêtes volcaniques', desc: 'Fraîcheur matinale idéale pour les randonnées vers les cascades.' },
-            { start: 8, end: 17, icon: '🐴', title: 'Chevaux sauvages & Baies grandioses', desc: 'Exploration des vallées mystiques et artisanat de sculpture sur bois.' },
-            { start: 17, end: 21, icon: '🗿', title: 'Contes et légendes marquisiennes', desc: 'Dîner aux saveurs sauvages et chants anciens au crépuscule.' },
-            { start: 21, end: 5, icon: '🌌', title: 'Nuit profonde du Pacifique', desc: 'Silence absolu au pied des pitons basaltiques vertigineux.' }
-        ]
+        name: '🗿 Îles Marquises',
+        abbr: 'UTC-9h30',
+        diffHours: -11.5,
+        tips: 'Décalage horaire particulier de -11h30 avec la France. Rythme très matinal avec le soleil.'
     },
     lax: {
         tz: 'America/Los_Angeles',
-        name: 'America/Los_Angeles',
-        label: '🇺🇸 Escale Los Angeles (LAX)',
-        tag: 'PDT (UTC-7)',
-        tips: 'Escale technique TN57 / TN8 : formalité ESTA obligatoire, marche dans le terminal.',
-        activities: [
-            { start: 6, end: 12, icon: '☕', title: 'Matinée californienne', desc: 'Activité intense à LAX, cafés et correspondances internationales.' },
-            { start: 12, end: 18, icon: '✈️', title: 'Après-midi Escale & Transits', desc: 'Flot continu de Boeing Dreamliner reliant l\'Europe et le Pacifique.' },
-            { start: 18, end: 23, icon: '🌆', title: 'Soirée illuminée de la Cité des Anges', desc: 'Pistes scintillantes et lumières côtières de Santa Monica.' },
-            { start: 23, end: 6, icon: '🌃', title: 'Nuit aéroportuaire', desc: 'Vols transpacifiques de nuit filant sous les étoiles.' }
-        ]
+        name: '🇺🇸 Escale Los Angeles LAX',
+        abbr: 'PDT (UTC-7)',
+        diffHours: -9,
+        tips: 'Transit de 2h à LAX : marche dans le terminal pour dégourdir les jambes des enfants.'
     }
 };
 
 function selectClockZone(zoneKey) {
     if (!CLOCK_ZONES[zoneKey]) return;
-    selectedClockZone = zoneKey;
+    currentClockZone = zoneKey;
 
-    // Mise à jour des boutons
     document.querySelectorAll('.clock-zone-btn').forEach(btn => {
         btn.classList.remove('active', 'bg-amber-400', 'text-teal-950');
         btn.classList.add('bg-white/15', 'text-teal-100');
     });
+
     const activeBtn = document.getElementById(`btn-clock-${zoneKey}`);
     if (activeBtn) {
         activeBtn.classList.add('active', 'bg-amber-400', 'text-teal-950');
         activeBtn.classList.remove('bg-white/15', 'text-teal-100');
     }
 
-    updateInternationalClock();
+    updateClockDisplay();
 }
 
 function initInternationalClock() {
-    updateInternationalClock();
-    setInterval(updateInternationalClock, 1000);
+    updateClockDisplay();
+    setInterval(updateClockDisplay, 1000);
 }
 
-function updateInternationalClock() {
+function updateClockDisplay() {
     const now = new Date();
-    const zoneConfig = CLOCK_ZONES[selectedClockZone] || CLOCK_ZONES.tahiti;
+    const zoneConfig = CLOCK_ZONES[currentClockZone] || CLOCK_ZONES.tahiti;
 
-    // 1. Heure de Paris (France)
-    const parisFormatterTime = new Intl.DateTimeFormat('fr-FR', {
+    // Heure Paris
+    const parisFormatter = new Intl.DateTimeFormat('fr-FR', {
         timeZone: 'Europe/Paris',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
     });
-    const parisFormatterDate = new Intl.DateTimeFormat('fr-FR', {
+    const parisDateFormatter = new Intl.DateTimeFormat('fr-FR', {
         timeZone: 'Europe/Paris',
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
-    const parisHour = parseInt(new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: 'numeric', hour12: false }).format(now), 10);
-
-    const parisTimeStr = parisFormatterTime.format(now);
-    const parisDateStr = parisFormatterDate.format(now);
 
     const parisTimeEl = document.getElementById('clock-paris-time');
     const parisDateEl = document.getElementById('clock-paris-date');
-    const parisDayNightEl = document.getElementById('clock-paris-daynight');
+    if (parisTimeEl) parisTimeEl.textContent = parisFormatter.format(now);
+    if (parisDateEl) parisDateEl.textContent = parisDateFormatter.format(now);
 
-    if (parisTimeEl) parisTimeEl.textContent = parisTimeStr;
-    if (parisDateEl) parisDateEl.textContent = parisDateStr;
-    if (parisDayNightEl) {
-        const isDayParis = (parisHour >= 7 && parisHour < 20);
-        parisDayNightEl.innerHTML = isDayParis ? `☀️ Jour` : `🌙 Nuit`;
-    }
-
-    // 2. Heure de l'Étape Sélectionnée (Polynésie ou Escale)
-    const destFormatterTime = new Intl.DateTimeFormat('fr-FR', {
+    // Heure Destination
+    const destFormatter = new Intl.DateTimeFormat('fr-FR', {
         timeZone: zoneConfig.tz,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
     });
-    const destFormatterDate = new Intl.DateTimeFormat('fr-FR', {
+    const destDateFormatter = new Intl.DateTimeFormat('fr-FR', {
         timeZone: zoneConfig.tz,
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
-    const destHour = parseInt(new Intl.DateTimeFormat('fr-FR', { timeZone: zoneConfig.tz, hour: 'numeric', hour12: false }).format(now), 10);
 
-    const destTimeStr = destFormatterTime.format(now);
-    const destDateStr = destFormatterDate.format(now);
-
+    const destTitleEl = document.getElementById('clock-dest-title');
     const destTimeEl = document.getElementById('clock-dest-time');
     const destDateEl = document.getElementById('clock-dest-date');
-    const destDayNightEl = document.getElementById('clock-dest-daynight');
-    const destTitleEl = document.getElementById('clock-dest-title');
-    const destTzNameEl = document.getElementById('clock-dest-tz-name');
-    const destStatusPill = document.getElementById('clock-dest-status-pill');
-
-    if (destTimeEl) destTimeEl.textContent = destTimeStr;
-    if (destDateEl) destDateEl.textContent = destDateStr;
-    if (destTitleEl) destTitleEl.innerHTML = zoneConfig.label;
-    if (destTzNameEl) destTzNameEl.textContent = zoneConfig.name;
-    if (destStatusPill) destStatusPill.textContent = zoneConfig.tag;
-
-    if (destDayNightEl) {
-        const isDayDest = (destHour >= 6 && destHour < 18);
-        destDayNightEl.innerHTML = isDayDest ? `☀️ Journée` : `🌙 Nuitée`;
-    }
-
-    // 3. Calcul du Décalage Horaire Précis
-    // On calcule la différence en millisecondes entre les deux fuseaux à l'instant T
-    const parisIsoStr = now.toLocaleString('en-US', { timeZone: 'Europe/Paris' });
-    const destIsoStr = now.toLocaleString('en-US', { timeZone: zoneConfig.tz });
-    const diffMs = new Date(destIsoStr).getTime() - new Date(parisIsoStr).getTime();
-    const diffHoursTotal = diffMs / (1000 * 60 * 60);
-
     const diffBadgeEl = document.getElementById('clock-diff-badge');
     const diffTextEl = document.getElementById('clock-diff-text');
 
-    if (diffBadgeEl && diffTextEl) {
-        const sign = diffHoursTotal > 0 ? `+${diffHoursTotal}h` : `${diffHoursTotal}h`;
-        diffBadgeEl.textContent = sign.replace('.5', 'h30');
-        if (diffHoursTotal < 0) {
-            const absH = Math.abs(diffHoursTotal).toString().replace('.5', 'h30');
-            diffTextEl.textContent = `${absH} de moins qu'à Paris`;
-        } else if (diffHoursTotal > 0) {
-            diffTextEl.textContent = `${diffHoursTotal}h d'avance sur Paris`;
-        } else {
-            diffTextEl.textContent = `Même heure qu'à Paris`;
-        }
-    }
+    if (destTitleEl) destTitleEl.textContent = zoneConfig.name;
+    if (destTimeEl) destTimeEl.textContent = destFormatter.format(now);
+    if (destDateEl) destDateEl.textContent = destDateFormatter.format(now);
 
-    // 4. Ambiance & Contexte de Vie Locale
-    const act = (zoneConfig.activities || []).find(a => {
-        if (a.start < a.end) {
-            return destHour >= a.start && destHour < a.end;
-        } else {
-            return destHour >= a.start || destHour < a.end;
-        }
-    }) || zoneConfig.activities[0];
+    if (diffBadgeEl) diffBadgeEl.textContent = `${zoneConfig.diffHours}h`;
+    if (diffTextEl) diffTextEl.textContent = `${Math.abs(zoneConfig.diffHours)}h de moins qu'à Paris`;
+
+    // Ambiance en fonction de l'heure locale
+    const destHourStr = new Intl.DateTimeFormat('fr-FR', {
+        timeZone: zoneConfig.tz, hour: 'numeric', hour12: false
+    }).format(now);
+    const destHour = parseInt(destHourStr, 10);
 
     const actIconEl = document.getElementById('clock-activity-icon');
     const actTitleEl = document.getElementById('clock-activity-title');
     const actDescEl = document.getElementById('clock-activity-desc');
     const tipEl = document.getElementById('clock-family-jetlag-tip');
 
-    if (actIconEl && act) actIconEl.textContent = act.icon;
-    if (actTitleEl && act) actTitleEl.textContent = `En ce moment sur place : ${act.title}`;
-    if (actDescEl && act) actDescEl.textContent = act.desc;
+    if (destHour >= 5 && destHour < 7) {
+        if (actIconEl) actIconEl.textContent = "🌅";
+        if (actTitleEl) actTitleEl.textContent = "Lever du jour tropical";
+        if (actDescEl) actDescEl.textContent = "L'île s'éveille doucement. Bain matinal rafraîchissant dans les eaux calmes du lagon.";
+    } else if (destHour >= 7 && destHour < 12) {
+        if (actIconEl) actIconEl.textContent = "☀️";
+        if (actTitleEl) actTitleEl.textContent = "Matinée lagon & découvertes";
+        if (actDescEl) actDescEl.textContent = "Ensoleillement parfait pour le snorkeling, les raies mantas et les sorties pirogue.";
+    } else if (destHour >= 12 && destHour < 15) {
+        if (actIconEl) actIconEl.textContent = "🌴";
+        if (actTitleEl) actTitleEl.textContent = "Déjeuner & pause ombragée";
+        if (actDescEl) actDescEl.textContent = "Poisson cru au lait de coco et sieste indispensable pour les enfants à l'ombre des cocotiers.";
+    } else if (destHour >= 15 && destHour < 18) {
+        if (actIconEl) actIconEl.textContent = "🏖️";
+        if (actTitleEl) actTitleEl.textContent = "Après-midi plage & baignade";
+        if (actDescEl) actDescEl.textContent = "Jeux de sable pour les jumeaux et bébé, balade au bord du récif et paddle.";
+    } else if (destHour >= 18 && destHour < 21) {
+        if (actIconEl) actIconEl.textContent = "🍹";
+        if (actTitleEl) actTitleEl.textContent = "Coucher de soleil & dîner insulaire";
+        if (actDescEl) actDescEl.textContent = "Le ciel s'embrase de rose et d'or. Roulottes traditionnelles ou dîner les pieds dans le sable.";
+    } else {
+        if (actIconEl) actIconEl.textContent = "🌙";
+        if (actTitleEl) actTitleEl.textContent = "Nuit tropicale sous les étoiles";
+        if (actDescEl) actDescEl.textContent = "Sommeil bercé par le ressac des vagues sur la barrière de corail.";
+    }
+
     if (tipEl) tipEl.innerHTML = `<i class="fas fa-bed text-amber-300"></i> ${zoneConfig.tips}`;
 }
 
 // -----------------------------------------------------------------------------
-// 1.c Bandeau d'Étapes (Stage Navigation Ribbon)
+// 5. Ruban Défilant d'Étapes en Haut (Navigation Rapide)
 // -----------------------------------------------------------------------------
 function renderStagesRibbon() {
     const ribbonContainer = document.getElementById('stages-ribbon');
     if (!ribbonContainer || typeof TRIP_STAGES === 'undefined') return;
 
     ribbonContainer.innerHTML = TRIP_STAGES.map((stage, idx) => {
-        const isActive = stage.status === 'current';
-        const isCompleted = stage.status === 'completed';
-        
         let iconEmoji = "🏝️";
-        let badgeBg = "bg-teal-800/80 text-white";
-        let borderClass = "border-white/20";
+        let badgeBg = "bg-teal-800 text-white";
         let labelTitle = stage.island || stage.title;
 
         if (stage.category === 'flight') {
             iconEmoji = "✈️";
-            badgeBg = stage.flightType === 'international' ? "bg-amber-400 text-teal-950 font-bold" : "bg-teal-600 text-white";
-            borderClass = "border-amber-300/40";
+            badgeBg = "bg-amber-400 text-teal-950 font-bold";
             labelTitle = stage.flightNumber || "Vol";
         } else if (stage.category === 'transfer') {
-            iconEmoji = stage.transferType === 'ferry' ? "⛴️" : "⛵";
+            iconEmoji = "⛴️";
             badgeBg = "bg-cyan-600 text-white";
-            borderClass = "border-cyan-300/40";
-            labelTitle = stage.transferType === 'ferry' ? "Ferry Moorea" : "Bateau Taha'a";
+            labelTitle = "Ferry";
         }
 
-        if (isActive) {
-            badgeBg = "bg-amber-400 text-teal-950 font-bold";
-            borderClass = "ring-2 ring-amber-400 border-amber-300";
-        } else if (isCompleted) {
-            badgeBg = "bg-emerald-500 text-white font-bold";
-        }
-
-        const dateSnippet = stage.dates ? stage.dates.split(' ')[0] + ' ' + (stage.dates.split(' ')[1] || '') : '';
+        const dateSnippet = stage.dates ? stage.dates.split(' ')[0] : '';
 
         return `
-            <a href="#stage-${stage.id}" onclick="jumpToStage('${stage.id}')" class="ribbon-pill flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md border ${borderClass} text-white text-xs font-medium cursor-pointer transition transform hover:scale-105 ${isActive ? 'active ring-2 ring-amber-400' : ''}" title="${stage.title}">
-                <span class="ribbon-badge w-6 h-6 rounded-full flex items-center justify-center text-[11px] shadow-sm ${badgeBg}">
+            <button onclick="openStageModal('${stage.id}')" class="flex-shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/15 hover:bg-white/30 backdrop-blur-md border border-white/20 text-white text-xs font-medium cursor-pointer transition transform hover:scale-105" title="${stage.title}">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] shadow-sm ${badgeBg}">
                     ${iconEmoji}
                 </span>
                 <div class="text-left">
                     <span class="block font-bold text-xs leading-tight whitespace-nowrap">${labelTitle}</span>
-                    <span class="block text-[10px] text-teal-100/90 leading-tight whitespace-nowrap">${dateSnippet}</span>
+                    <span class="block text-[10px] text-teal-200 leading-tight whitespace-nowrap">${dateSnippet}</span>
                 </div>
-            </a>
-            ${idx < TRIP_STAGES.length - 1 ? `<i class="fas fa-chevron-right text-[9px] text-teal-200/50 flex-shrink-0"></i>` : ''}
+            </button>
+            ${idx < TRIP_STAGES.length - 1 ? `<i class="fas fa-chevron-right text-[8px] text-teal-300/40 flex-shrink-0"></i>` : ''}
         `;
     }).join('');
 }
 
-function jumpToStage(stageId) {
-    // S'assurer qu'on est en vue "stages"
-    if (typeof currentViewMode !== 'undefined' && currentViewMode !== 'stages') {
-        switchTimelineView('stages');
-    }
+// -----------------------------------------------------------------------------
+// 6. Rendu des Étapes de l'Itinéraire (Vue Synthétique vs Dépliée)
+// -----------------------------------------------------------------------------
+function setCardsDisplayMode(mode) {
+    cardsDisplayMode = mode;
+    const btnCompact = document.getElementById('btn-view-compact');
+    const btnExpanded = document.getElementById('btn-view-expanded');
 
-    // Synchroniser automatiquement l'horloge si l'étape est à LAX ou autre
-    if (stageId === 'vol-aller-tn57' || stageId === 'vol-retour-tn8') {
-        // Garder Tahiti par défaut ou LAX si transit
-    }
-
-    setTimeout(() => {
-        const target = document.getElementById(`stage-${stageId}`);
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            target.classList.add('ring-4', 'ring-amber-400', 'transition', 'duration-500');
-            setTimeout(() => {
-                target.classList.remove('ring-4', 'ring-amber-400');
-            }, 2000);
+    if (mode === 'compact') {
+        if (btnCompact) {
+            btnCompact.className = 'px-3 py-1.5 rounded-lg bg-white text-teal-900 shadow-sm transition';
         }
-    }, 100);
-}
-
-// -----------------------------------------------------------------------------
-// 1.d Rendu du Calendrier des Vols & Liaisons Aériennes
-// -----------------------------------------------------------------------------
-function renderFlightsList() {
-    const container = document.getElementById('flights-list');
-    if (!container || typeof TRIP_FLIGHTS === 'undefined') return;
-
-    container.innerHTML = TRIP_FLIGHTS.map((flight, idx) => {
-        const isInter = flight.category === 'international';
-        const badgeColor = isInter ? 'bg-teal-100 text-teal-800 border-teal-200' : 'bg-amber-100 text-amber-900 border-amber-200';
-        const iconName = isInter ? 'fa-plane' : 'fa-plane-tail';
-
-        return `
-            <div class="border border-gray-100 rounded-2xl p-4 sm:p-5 hover:border-teal-300 hover:shadow-md transition bg-gradient-to-r ${isInter ? 'from-teal-50/40 to-transparent' : 'from-amber-50/30 to-transparent'}">
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold ${isInter ? 'bg-teal-800 text-white' : 'bg-amber-500 text-white'}">
-                            ${idx + 1}
-                        </span>
-                        <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${badgeColor}">
-                            ${flight.type}
-                        </span>
-                        <span class="font-extrabold text-sm sm:text-base text-teal-950 font-mono">
-                            ${flight.flightNumber}
-                        </span>
-                    </div>
-                    <span class="text-xs font-semibold text-gray-500 flex items-center gap-1">
-                        <i class="fas fa-calendar-day text-teal-600"></i> ${flight.departureDate}
-                    </span>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-2 text-xs sm:text-sm">
-                    <!-- Départ -->
-                    <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-                        <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">Départ</span>
-                        <span class="font-bold text-teal-950 block">${flight.departureAirport}</span>
-                        <span class="text-xs font-bold text-teal-700 mt-1 block">Heure : ${flight.departureTime}</span>
-                    </div>
-
-                    <!-- Transit / Durée -->
-                    <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-center text-center">
-                        <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">Liaison & Transit</span>
-                        <span class="font-semibold text-gray-700 block">${flight.transit}</span>
-                        <span class="text-[11px] text-amber-700 mt-1 font-medium block">⏳ Durée : ${flight.duration}</span>
-                    </div>
-
-                    <!-- Arrivée -->
-                    <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-                        <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">Arrivée</span>
-                        <span class="font-bold text-teal-950 block">${flight.arrivalAirport}</span>
-                        <span class="text-xs font-bold text-teal-700 mt-1 block">Arrivée : ${flight.arrivalTime}</span>
-                    </div>
-                </div>
-
-                <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600">
-                    <span class="flex items-center gap-1.5">
-                        <i class="fas fa-suitcase text-teal-600"></i> <strong>Franchise :</strong> ${flight.baggage}
-                    </span>
-                    <span class="flex items-center gap-1.5 text-gray-500 italic">
-                        <i class="fas fa-info-circle text-amber-500"></i> ${flight.notes}
-                    </span>
-                </div>
-                ${flight.externalLinks && flight.externalLinks.length > 0 ? `
-                    <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-2">
-                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1">Suivi & Liens :</span>
-                        ${flight.externalLinks.map(link => `
-                            <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-semibold border border-teal-200 transition">
-                                <i class="fas ${link.icon || 'fa-external-link-alt'} text-teal-600"></i> ${link.label} <i class="fas fa-arrow-up-right-from-square text-[9px] opacity-70"></i>
-                            </a>
-                        `).join('')}
-                    </div>
-                ` : ''}
-            </div>
-        `;
-    }).join('');
-}
-
-// -----------------------------------------------------------------------------
-// 2. Carte Interactive (Leaflet)
-// -----------------------------------------------------------------------------
-function initMap() {
-    const mapContainer = document.getElementById('map');
-    if (!mapContainer || typeof TRIP_STAGES === 'undefined') return;
-
-    // Centrage sur la Société / Tuamotu
-    map = L.map('map', {
-        scrollWheelZoom: false
-    }).setView([-16.5, -149.8], 7);
-
-    // Fond de carte OpenStreetMap avec un style moderne
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> & CartoDB',
-        subdomains: 'abcd',
-        maxZoom: 19
-    }).addTo(map);
-
-    // On sélectionne les escales terrestres des îles pour les marqueurs et le tracé
-    const islandStages = TRIP_STAGES.filter(stage => stage.category === 'island');
-    const coordsList = islandStages.map(stage => stage.coords);
-
-    // Tracé de l'itinéraire entre les îles
-    polyline = L.polyline(coordsList, {
-        color: '#028090',
-        weight: 3,
-        opacity: 0.8,
-        dashArray: '8, 8',
-        lineCap: 'round'
-    }).addTo(map);
-
-    // Ajout des marqueurs pour chaque île
-    islandStages.forEach((stage, index) => {
-        const iconEmoji = stage.status === 'completed' ? '✓' : stage.status === 'current' ? '★' : (index + 1);
-        const markerClass = stage.status === 'current' ? 'custom-map-marker active-marker' : 'custom-map-marker';
-
-        const customIcon = L.divIcon({
-            className: markerClass,
-            html: `<span>${iconEmoji}</span>`,
-            iconSize: [36, 36],
-            iconAnchor: [18, 18],
-            popupAnchor: [0, -20]
-        });
-
-        const marker = L.marker(stage.coords, { icon: customIcon }).addTo(map);
-
-        // Contenu de la popup
-        const statusBadge = getStatusBadge(stage.status);
-        const popupContent = `
-            <div style="width: 240px; font-family: inherit;">
-                <img src="${stage.coverImage}" alt="${stage.title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px 8px 0 0;" />
-                <div style="padding: 12px;">
-                    <div style="margin-bottom: 6px;">${statusBadge}</div>
-                    <h4 style="font-weight: 700; font-size: 1rem; color: #264653; margin-bottom: 4px;">${stage.island}</h4>
-                    <p style="font-size: 0.85rem; color: #52796F; margin-bottom: 6px;"><strong>${stage.dates}</strong></p>
-                    <p style="font-size: 0.8rem; color: #444; line-height: 1.3; margin-bottom: 10px;">${stage.summary}</p>
-                    <a href="#stage-${stage.id}" onclick="jumpToStage('${stage.id}')" style="display: inline-block; width: 100%; text-align: center; background: #028090; color: white; padding: 6px 10px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 600;">
-                        Voir dans le carnet →
-                    </a>
-                </div>
-            </div>
-        `;
-
-        marker.bindPopup(popupContent);
-        markers.push({ stageId: stage.id, island: stage.island, marker: marker });
-    });
-
-    // Ajustement de la vue pour tout voir
-    if (coordsList.length > 0) {
-        map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
-    }
-}
-
-function highlightMapStage(stageId) {
-    if (!map || markers.length === 0) return;
-
-    // Trouver l'étape demandée
-    const targetStage = TRIP_STAGES.find(s => s.id === stageId);
-    if (!targetStage) return;
-
-    // Chercher le marqueur correspondant soit par ID soit par île
-    let item = markers.find(m => m.stageId === stageId);
-    if (!item && targetStage.island) {
-        item = markers.find(m => m.island.toLowerCase() === targetStage.island.toLowerCase());
-    }
-
-    if (item) {
-        map.flyTo(item.marker.getLatLng(), 9, { duration: 1.2 });
-        item.marker.openPopup();
-    }
-}
-
-// -----------------------------------------------------------------------------
-// 3. Journal de Bord (Timeline)
-// -----------------------------------------------------------------------------
-function getStatusBadge(status) {
-    if (status === 'completed') {
-        return `<span class="badge-status badge-completed"><i class="fas fa-check-circle"></i> Visité</span>`;
-    } else if (status === 'current') {
-        return `<span class="badge-status badge-current"><i class="fas fa-compass fa-spin"></i> En ce moment</span>`;
+        if (btnExpanded) {
+            btnExpanded.className = 'px-3 py-1.5 rounded-lg text-gray-600 hover:text-teal-900 transition';
+        }
     } else {
-        return `<span class="badge-status badge-upcoming"><i class="fas fa-clock"></i> À venir</span>`;
+        if (btnExpanded) {
+            btnExpanded.className = 'px-3 py-1.5 rounded-lg bg-white text-teal-900 shadow-sm transition';
+        }
+        if (btnCompact) {
+            btnCompact.className = 'px-3 py-1.5 rounded-lg text-gray-600 hover:text-teal-900 transition';
+        }
     }
+
+    renderTimeline();
 }
 
-function renderTimeline(stagesToRender) {
-    const container = document.getElementById('timeline-container');
-    if (!container) return;
+function initSearchListener() {
+    const searchInput = document.getElementById('stage-search-input');
+    if (!searchInput) return;
 
-    if (!stagesToRender || stagesToRender.length === 0) {
+    searchInput.addEventListener('input', (e) => {
+        currentSearchQuery = e.target.value.toLowerCase().trim();
+        renderTimeline();
+    });
+}
+
+function renderTimeline() {
+    const container = document.getElementById('timeline-container');
+    if (!container || typeof TRIP_STAGES === 'undefined') return;
+
+    // Filtrage
+    let stages = TRIP_STAGES;
+
+    if (currentFilter === 'flights') {
+        stages = stages.filter(s => s.category === 'flight' || s.category === 'transfer');
+    } else if (currentFilter === 'islands') {
+        stages = stages.filter(s => s.category === 'island');
+    } else if (currentFilter !== 'all') {
+        stages = stages.filter(s => s.island && s.island.toLowerCase() === currentFilter.toLowerCase());
+    }
+
+    // Recherche
+    if (currentSearchQuery) {
+        stages = stages.filter(s => {
+            const str = `${s.title} ${s.island || ''} ${s.hotel || ''} ${s.summary || ''} ${s.story || ''}`.toLowerCase();
+            return str.includes(currentSearchQuery);
+        });
+    }
+
+    if (stages.length === 0) {
         container.innerHTML = `
-            <div class="text-center py-12 bg-white rounded-2xl shadow-sm">
-                <p class="text-lg text-emerald-800">Aucune étape ne correspond à ce filtre.</p>
+            <div class="col-span-full text-center py-12 bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+                <span class="text-4xl block mb-2">🔍</span>
+                <p class="text-base font-bold text-gray-800">Aucune étape ne correspond à votre recherche.</p>
+                <button onclick="resetFilters()" class="mt-3 px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-semibold hover:bg-teal-700 transition">
+                    Réinitialiser les filtres
+                </button>
             </div>
         `;
         return;
     }
 
-    container.innerHTML = stagesToRender.map((stage, idx) => {
-        // ---------------------------------------------------------------------
-        // CAS 1 : ÉTAPE VOL (International ou Domestique)
-        // ---------------------------------------------------------------------
-        if (stage.category === 'flight') {
-            const isInter = stage.flightType === 'international';
-            const badgeColor = isInter ? 'bg-amber-400 text-teal-950 font-bold' : 'bg-teal-700 text-white font-bold';
-            const flightBadgeLabel = isInter ? 'Vol International' : 'Vol Inter-Îles Air Tahiti';
-
-            const highlightsHtml = (stage.highlights || []).map(h => `
-                <li class="flex items-center gap-2 text-xs sm:text-sm text-teal-950 mb-1">
-                    <span class="text-amber-500 font-bold">✈</span> ${h}
-                </li>
-            `).join('');
-
-            const programDetailsHtml = (stage.programDetails || []).map(item => `
-                <li class="text-xs sm:text-sm text-gray-700 mb-1.5 pl-3 border-l-2 border-amber-400">
-                    ${item}
-                </li>
-            `).join('');
-
-            return `
-                <article id="stage-${stage.id}" class="stage-card mb-12 overflow-hidden border border-amber-200/70 shadow-lg rounded-3xl bg-white scroll-mt-24">
-                    <!-- Bannière Supérieure Avion / Carte d'embarquement -->
-                    <div class="bg-gradient-to-r ${isInter ? 'from-teal-900 via-teal-800 to-indigo-950' : 'from-teal-800 to-cyan-900'} text-white p-5 sm:p-6 relative overflow-hidden">
-                        <div class="absolute -right-4 -bottom-4 text-7xl font-mono font-black text-white/5 pointer-events-none select-none">
-                            ${stage.flightNumber}
-                        </div>
-                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3 relative z-10">
-                            <div class="flex items-center gap-2">
-                                <span class="w-8 h-8 rounded-xl flex items-center justify-center text-xs shadow-sm ${badgeColor}">
-                                    ✈
-                                </span>
-                                <span class="text-xs uppercase font-extrabold tracking-wider px-3 py-1 rounded-full bg-white/15 border border-white/25">
-                                    Étape ${idx + 1} • ${flightBadgeLabel}
-                                </span>
-                                <span class="font-mono font-bold text-sm sm:text-base text-amber-300">
-                                    ${stage.flightNumber}
-                                </span>
-                            </div>
-                            <span class="text-xs text-teal-200 font-semibold flex items-center gap-1.5">
-                                <i class="fas fa-calendar-day text-amber-300"></i> ${stage.dates}
-                            </span>
-                        </div>
-
-                        <h3 class="text-xl sm:text-2xl font-bold font-display text-white relative z-10 mb-2">
-                            ${stage.title}
-                        </h3>
-                        <p class="text-xs sm:text-sm text-teal-100/90 relative z-10 font-light max-w-3xl">
-                            ${stage.airline} • Appareil : <strong>${stage.aircraft}</strong>
-                        </p>
-
-                        <!-- Trajet Aérien Récapitulatif -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 my-4 relative z-10 text-xs text-gray-800">
-                            <div class="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-sm border border-white/40">
-                                <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">Départ</span>
-                                <span class="font-extrabold text-teal-950 block text-sm">${stage.departureAirport}</span>
-                                <span class="text-xs font-bold text-teal-700 mt-1 block">Heure : ${stage.departureTime}</span>
-                            </div>
-
-                            <div class="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-sm border border-white/40 flex flex-col justify-center text-center">
-                                <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">Liaison</span>
-                                <span class="font-semibold text-gray-700 block">${stage.transit}</span>
-                                <span class="text-xs text-amber-700 mt-1 font-bold block">⏳ ${stage.duration}</span>
-                            </div>
-
-                            <div class="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-sm border border-white/40">
-                                <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">Arrivée</span>
-                                <span class="font-extrabold text-teal-950 block text-sm">${stage.arrivalAirport}</span>
-                                <span class="text-xs font-bold text-teal-700 mt-1 block">Arrivée : ${stage.arrivalTime}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Corps de la Carte de Vol -->
-                    <div class="p-6 sm:p-8">
-                        <p class="text-gray-700 mb-5 leading-relaxed text-sm sm:text-base">
-                            ${stage.story}
-                        </p>
-
-                        <!-- Franchise Bagages -->
-                        <div class="bg-teal-50/80 p-3.5 rounded-2xl mb-4 border border-teal-100 text-xs sm:text-sm text-gray-700 flex items-start gap-2.5">
-                            <i class="fas fa-suitcase text-teal-600 text-base mt-0.5"></i>
-                            <div>
-                                <strong class="text-teal-950">Franchise Bagages & Poids :</strong>
-                                <span>${stage.baggage}</span>
-                            </div>
-                        </div>
-
-                        <!-- Programme du Vol -->
-                        ${programDetailsHtml ? `
-                            <div class="mb-4">
-                                <h4 class="text-xs font-bold uppercase tracking-wider text-teal-900 mb-2 flex items-center gap-1.5">
-                                    <i class="fas fa-clock text-teal-600"></i> Déroulement du vol
-                                </h4>
-                                <ul class="space-y-1">${programDetailsHtml}</ul>
-                            </div>
-                        ` : ''}
-
-                        <!-- Moments Phares -->
-                        ${highlightsHtml ? `
-                            <div class="bg-amber-50/70 p-4 rounded-2xl mb-4 border border-amber-200/80">
-                                <h4 class="text-xs font-bold uppercase tracking-wider text-amber-950 mb-2 flex items-center gap-1.5">
-                                    <i class="fas fa-star text-amber-500"></i> Points forts du trajet
-                                </h4>
-                                <ul>${highlightsHtml}</ul>
-                            </div>
-                        ` : ''}
-
-                        <!-- Conseil Spécial Famille -->
-                        ${stage.familyTips ? `
-                            <div class="p-3.5 bg-rose-50/70 rounded-2xl mb-4 border border-rose-100 text-xs sm:text-sm text-gray-700 flex items-start gap-2.5">
-                                <span class="text-base">👶</span>
-                                <div><strong class="text-rose-950">Conseil Vol avec Enfants & Bébé :</strong> ${stage.familyTips}</div>
-                            </div>
-                        ` : ''}
-
-                        <!-- Liens Utiles & Suivi en Direct -->
-                        ${stage.externalLinks && stage.externalLinks.length > 0 ? `
-                            <div class="mb-4 p-3.5 bg-teal-50/70 rounded-2xl border border-teal-100">
-                                <h4 class="text-xs font-bold uppercase tracking-wider text-teal-900 mb-2 flex items-center gap-1.5">
-                                    <i class="fas fa-arrow-up-right-from-square text-teal-600"></i> Suivi du vol & Liens utiles
-                                </h4>
-                                <div class="flex flex-wrap items-center gap-2">
-                                    ${stage.externalLinks.map(link => `
-                                        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-teal-50 text-teal-900 font-semibold text-xs border border-teal-200 shadow-sm transition">
-                                            <i class="fas ${link.icon || 'fa-external-link-alt'} text-teal-600"></i> ${link.label} <i class="fas fa-external-link-alt text-[10px] text-gray-400"></i>
-                                        </a>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
-
-                        <div class="pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
-                            <span class="text-xs text-gray-500 italic">
-                                <i class="fas fa-bed text-teal-600"></i> ${stage.hotel}
-                            </span>
-                            <button onclick="highlightMapStage('${stage.id}')" class="btn-secondary text-xs flex items-center gap-2">
-                                <i class="fas fa-map-pin"></i> Situer l'escale sur la carte
-                            </button>
-                        </div>
-                    </div>
-                </article>
-            `;
-        }
-
-        // ---------------------------------------------------------------------
-        // CAS 2 : ÉTAPE TRAVERSÉE MARITIME / NAVETTE LAGON
-        // ---------------------------------------------------------------------
-        else if (stage.category === 'transfer') {
-            const isFerry = stage.transferType === 'ferry';
-            const iconEmoji = isFerry ? '⛴️' : '⛵';
-            const badgeLabel = isFerry ? 'Traversée Ferry' : 'Navigation Navette Lagon';
-
-            const highlightsHtml = (stage.highlights || []).map(h => `
-                <li class="flex items-center gap-2 text-xs sm:text-sm text-teal-950 mb-1">
-                    <span class="text-cyan-600 font-bold">✓</span> ${h}
-                </li>
-            `).join('');
-
-            return `
-                <article id="stage-${stage.id}" class="stage-card mb-12 overflow-hidden border border-cyan-200/80 shadow-lg rounded-3xl bg-white scroll-mt-24">
-                    <div class="bg-gradient-to-r from-teal-800 to-cyan-800 text-white p-5 sm:p-6 relative overflow-hidden">
-                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                            <div class="flex items-center gap-2">
-                                <span class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shadow-sm bg-cyan-400 text-teal-950 font-bold">
-                                    ${iconEmoji}
-                                </span>
-                                <span class="text-xs uppercase font-extrabold tracking-wider px-3 py-1 rounded-full bg-white/15 border border-white/25">
-                                    Étape ${idx + 1} • ${badgeLabel}
-                                </span>
-                            </div>
-                            <span class="text-xs text-cyan-200 font-semibold flex items-center gap-1.5">
-                                <i class="fas fa-calendar-day text-cyan-300"></i> ${stage.dates}
-                            </span>
-                        </div>
-
-                        <h3 class="text-xl sm:text-2xl font-bold font-display text-white mb-2">
-                            ${stage.title}
-                        </h3>
-                        <p class="text-xs sm:text-sm text-cyan-100 font-light">
-                            ${stage.departureAirport} ➔ ${stage.arrivalAirport} (${stage.duration})
-                        </p>
-                    </div>
-
-                    <div class="p-6 sm:p-8">
-                        <p class="text-gray-700 mb-5 leading-relaxed text-sm sm:text-base">
-                            ${stage.story}
-                        </p>
-
-                        ${stage.vehicle ? `
-                            <div class="bg-teal-50/80 p-3.5 rounded-2xl mb-4 border border-teal-100 text-xs sm:text-sm text-gray-700 flex items-start gap-2.5">
-                                <i class="fas fa-car text-teal-600 text-base mt-0.5"></i>
-                                <div><strong class="text-teal-950">Véhicule & Logistique :</strong> ${stage.vehicle}</div>
-                            </div>
-                        ` : ''}
-
-                        <!-- Moments Phares -->
-                        <div class="bg-cyan-50/70 p-4 rounded-2xl mb-4 border border-cyan-200/80">
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-cyan-950 mb-2 flex items-center gap-1.5">
-                                <i class="fas fa-compass text-cyan-600"></i> Points forts de la traversée
-                            </h4>
-                            <ul>${highlightsHtml}</ul>
-                        </div>
-
-                        <!-- Conseil Spécial Famille -->
-                        ${stage.familyTips ? `
-                            <div class="p-3.5 bg-rose-50/70 rounded-2xl mb-4 border border-rose-100 text-xs sm:text-sm text-gray-700 flex items-start gap-2.5">
-                                <span class="text-base">👶</span>
-                                <div><strong class="text-rose-950">Conseil Traversée avec les Enfants :</strong> ${stage.familyTips}</div>
-                            </div>
-                        ` : ''}
-
-                        <!-- Liens Utiles & Compagnies Maritimes -->
-                        ${stage.externalLinks && stage.externalLinks.length > 0 ? `
-                            <div class="mb-4 p-3.5 bg-cyan-50/70 rounded-2xl border border-cyan-200">
-                                <h4 class="text-xs font-bold uppercase tracking-wider text-teal-950 mb-2 flex items-center gap-1.5">
-                                    <i class="fas fa-ship text-cyan-700"></i> Horaires maritimes & Liens utiles
-                                </h4>
-                                <div class="flex flex-wrap items-center gap-2">
-                                    ${stage.externalLinks.map(link => `
-                                        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-cyan-50 text-cyan-950 font-semibold text-xs border border-cyan-200 shadow-sm transition">
-                                            <i class="fas ${link.icon || 'fa-external-link-alt'} text-cyan-700"></i> ${link.label} <i class="fas fa-external-link-alt text-[10px] text-gray-400"></i>
-                                        </a>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
-
-                        <div class="pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
-                            <span class="text-xs text-gray-500 italic">
-                                <i class="fas fa-hotel text-teal-600"></i> ${stage.hotel}
-                            </span>
-                            <button onclick="highlightMapStage('${stage.id}')" class="btn-secondary text-xs flex items-center gap-2">
-                                <i class="fas fa-map-pin"></i> Situer sur la carte
-                            </button>
-                        </div>
-                    </div>
-                </article>
-            `;
-        }
-
-        // ---------------------------------------------------------------------
-        // CAS 3 : ÉTAPE ÎLE (Séjour insulaire complet)
-        // ---------------------------------------------------------------------
-        else {
-            const highlightsHtml = (stage.highlights || []).map(h => `
-                <li class="flex items-center gap-2 text-sm text-emerald-900 mb-1">
-                    <span class="text-teal-600 font-bold">✓</span> ${h}
-                </li>
-            `).join('');
-
-            const programDetailsHtml = (stage.programDetails || []).map(item => `
-                <li class="text-xs sm:text-sm text-gray-700 mb-1.5 pl-3 border-l-2 border-teal-300">
-                    ${item}
-                </li>
-            `).join('');
-
-            const galleryThumbs = (stage.gallery || []).map(img => `
-                <img src="${img}" alt="${stage.title}" class="w-16 h-16 rounded-xl object-cover cursor-pointer hover:opacity-80 transition shadow-sm" onclick="openLightboxFromUrl('${img}')" />
-            `).join('');
-
-            return `
-                <article id="stage-${stage.id}" class="stage-card mb-12 overflow-hidden border border-emerald-100/60 shadow-lg rounded-3xl bg-white scroll-mt-24">
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
-                        <!-- Photo de couverture & Badges -->
-                        <div class="lg:col-span-5 relative h-72 lg:h-auto min-h-[300px]">
-                            <img src="${stage.coverImage}" alt="${stage.title}" class="w-full h-full object-cover cursor-pointer" onclick="openLightboxFromUrl('${stage.coverImage}')" />
-                            <div class="absolute top-4 left-4">
-                                ${getStatusBadge(stage.status)}
-                            </div>
-                            <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end text-white text-xs bg-black/50 backdrop-blur-md px-3.5 py-2.5 rounded-xl">
-                                <span><i class="fas fa-map-marker-alt text-amber-400 mr-1"></i> ${stage.island}</span>
-                                <span><i class="fas fa-calendar-alt text-cyan-300 mr-1"></i> ${stage.dates}</span>
-                            </div>
-                        </div>
-
-                        <!-- Contenu du récit & Détails -->
-                        <div class="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between">
-                            <div>
-                                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                                    <span class="text-xs uppercase tracking-wider font-bold text-teal-800 bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
-                                        Étape ${idx + 1} • Escale ${stage.island}
-                                    </span>
-                                    <div class="flex items-center gap-3 text-xs text-gray-500 font-medium">
-                                        <span>${stage.weather || '28°C'}</span>
-                                        <span>${stage.mood || '🌺 Bonheur'}</span>
-                                    </div>
-                                </div>
-
-                                <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 font-display mb-3">
-                                    ${stage.title}
-                                </h3>
-
-                                <p class="text-gray-600 mb-5 leading-relaxed text-sm sm:text-base">
-                                    ${stage.story}
-                                </p>
-
-                                <!-- Encart Logistique & Hébergement -->
-                                <div class="bg-teal-50/70 p-4 rounded-2xl mb-4 border border-teal-100 text-xs sm:text-sm">
-                                    <div class="mb-1.5 flex items-start gap-2">
-                                        <i class="fas fa-hotel text-teal-600 mt-0.5"></i>
-                                        <div><strong>Hébergement :</strong> <span class="text-teal-950 font-semibold">${stage.hotel}</span> — <span class="text-gray-600">${stage.roomType || ''}</span></div>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <i class="fas fa-plane-arrival text-teal-600 mt-0.5"></i>
-                                        <div><strong>Transfert & Transport :</strong> <span class="text-gray-700">${stage.transport || ''}</span></div>
-                                    </div>
-                                </div>
-
-                                <!-- Programme au fil des jours -->
-                                ${programDetailsHtml ? `
-                                    <div class="mb-5">
-                                        <h4 class="text-xs font-bold uppercase tracking-wider text-teal-900 mb-2 flex items-center gap-1.5">
-                                            <i class="fas fa-list-check text-teal-600"></i> Au fil des journées sur place
-                                        </h4>
-                                        <ul class="space-y-1">${programDetailsHtml}</ul>
-                                    </div>
-                                ` : ''}
-
-                                <!-- Highlights -->
-                                <div class="bg-amber-50/80 p-4 rounded-2xl mb-4 border border-amber-200/80">
-                                    <h4 class="text-xs font-bold uppercase tracking-wider text-amber-950 mb-2 flex items-center gap-1.5">
-                                        <i class="fas fa-star text-amber-500"></i> Moments phares & Activités incluses
-                                    </h4>
-                                    <ul>${highlightsHtml}</ul>
-                                </div>
-
-                                <!-- Conseils Famille -->
-                                ${stage.familyTips ? `
-                                    <div class="p-3.5 bg-rose-50/60 rounded-2xl mb-3 border border-rose-100 text-xs sm:text-sm text-gray-700 flex items-start gap-2.5">
-                                        <span class="text-base">👶</span>
-                                        <div><strong class="text-rose-950">Conseil Tribu & Enfants :</strong> ${stage.familyTips}</div>
-                                    </div>
-                                ` : ''}
-
-                                <!-- Saveurs locales -->
-                                ${stage.culinaryTips ? `
-                                    <div class="p-3.5 bg-emerald-50/60 rounded-2xl mb-4 border border-emerald-100 text-xs sm:text-sm text-gray-700 flex items-start gap-2.5">
-                                        <span class="text-base">🍍</span>
-                                        <div><strong class="text-emerald-950">À déguster sur l'île :</strong> ${stage.culinaryTips}</div>
-                                    </div>
-                                ` : ''}
-
-                                <!-- Liens Utiles & Découverte Locale -->
-                                ${stage.externalLinks && stage.externalLinks.length > 0 ? `
-                                    <div class="mb-5 p-3.5 bg-teal-50/70 rounded-2xl border border-teal-100">
-                                        <h4 class="text-xs font-bold uppercase tracking-wider text-teal-900 mb-2 flex items-center gap-1.5">
-                                            <i class="fas fa-compass text-teal-600"></i> Découverte & Liens officiels
-                                        </h4>
-                                        <div class="flex flex-wrap items-center gap-2">
-                                            ${stage.externalLinks.map(link => `
-                                                <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-teal-50 text-teal-900 font-semibold text-xs border border-teal-200 shadow-sm transition">
-                                                    <i class="fas ${link.icon || 'fa-external-link-alt'} text-teal-600"></i> ${link.label} <i class="fas fa-external-link-alt text-[10px] text-gray-400"></i>
-                                                </a>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                ` : ''}
-                            </div>
-
-                            <div class="pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
-                                <div class="flex items-center gap-2">
-                                    ${galleryThumbs}
-                                </div>
-                                <button onclick="highlightMapStage('${stage.id}')" class="btn-secondary text-xs flex items-center gap-2">
-                                    <i class="fas fa-map-pin"></i> Situer sur la carte
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-            `;
-        }
-    }).join('');
-}
-
-// -----------------------------------------------------------------------------
-// 4. Bascule de Vue (Étapes vs Jour par Jour) & Filtres par Île
-// -----------------------------------------------------------------------------
-let currentViewMode = 'stages';
-
-function switchTimelineView(mode) {
-    currentViewMode = mode;
-    const stagesBtn = document.getElementById('view-mode-stages');
-    const dailyBtn = document.getElementById('view-mode-daily');
-    const filterContainer = document.getElementById('island-filters');
-
-    if (mode === 'daily') {
-        if (dailyBtn) dailyBtn.className = 'px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-teal-800 text-white shadow-sm flex items-center gap-2';
-        if (stagesBtn) stagesBtn.className = 'px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition text-teal-900 hover:text-teal-700 flex items-center gap-2';
-        if (filterContainer) filterContainer.classList.add('hidden');
-        renderDailyProgram();
+    // Rendu selon le mode d'affichage
+    if (cardsDisplayMode === 'compact') {
+        container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6";
+        container.innerHTML = stages.map((stage, idx) => renderStageCompactCard(stage, idx)).join('');
     } else {
-        if (stagesBtn) stagesBtn.className = 'px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-teal-800 text-white shadow-sm flex items-center gap-2';
-        if (dailyBtn) dailyBtn.className = 'px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition text-teal-900 hover:text-teal-700 flex items-center gap-2';
-        if (filterContainer) filterContainer.classList.remove('hidden');
-        renderTimeline(TRIP_STAGES);
+        container.className = "grid grid-cols-1 gap-8";
+        container.innerHTML = stages.map((stage, idx) => renderStageExpandedCard(stage, idx)).join('');
     }
 }
 
-function renderDailyProgram() {
-    const container = document.getElementById('timeline-container');
-    if (!container || !DAILY_PROGRAM) return;
+// CARTE ÉPURÉE (Synthétique avec bouton d'ouverture de modale)
+function renderStageCompactCard(stage, idx) {
+    const isFlight = stage.category === 'flight';
+    const isTransfer = stage.category === 'transfer';
 
-    container.innerHTML = `
-        <div class="relative pl-4 sm:pl-8 border-l-2 border-teal-200/80 space-y-6 sm:space-y-8 my-6">
-            ${DAILY_PROGRAM.map(day => `
-                <div class="relative group">
-                    <!-- Point sur la ligne chronologique -->
-                    <div class="absolute -left-[25px] sm:-left-[41px] top-1.5 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white border-4 border-teal-600 flex items-center justify-center text-xs shadow-sm font-bold text-teal-800">
-                        ${day.dayNumber}
-                    </div>
+    let categoryBadge = "Escale Lagon";
+    let badgeColor = "bg-teal-50 text-teal-800 border-teal-200";
+    let iconEmoji = "🏝️";
 
-                    <!-- Carte du jour -->
-                    <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm hover:shadow-md transition border border-teal-100">
-                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                            <div class="flex items-center gap-2">
-                                <span class="bg-teal-50 text-teal-800 text-xs font-bold px-3 py-1 rounded-full border border-teal-200">
-                                    Jour ${day.dayNumber} • ${day.date}
-                                </span>
-                                <span class="bg-amber-50 text-amber-900 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-amber-200">
-                                    📍 ${day.island}
-                                </span>
-                            </div>
-                            <span class="text-xs text-gray-500 font-medium italic">
-                                ${day.type}
-                            </span>
-                        </div>
+    if (isFlight) {
+        categoryBadge = stage.flightType === 'international' ? "Vol International" : "Vol Air Tahiti";
+        badgeColor = stage.flightType === 'international' ? "bg-amber-50 text-amber-900 border-amber-200" : "bg-teal-50 text-teal-800 border-teal-200";
+        iconEmoji = "✈️";
+    } else if (isTransfer) {
+        categoryBadge = "Traversée Bateau";
+        badgeColor = "bg-cyan-50 text-cyan-900 border-cyan-200";
+        iconEmoji = "⛴️";
+    }
 
-                        <h3 class="text-lg sm:text-xl font-bold text-teal-950 font-display mb-2 flex items-center gap-2">
-                            <span>${day.icon}</span> ${day.title}
-                        </h3>
+    const highlightsSnippet = (stage.highlights || []).slice(0, 3).map(h => `
+        <li class="flex items-center gap-1.5 text-xs text-gray-600 truncate">
+            <span class="text-teal-500 text-xs">✓</span> <span class="truncate">${h}</span>
+        </li>
+    `).join('');
 
-                        <p class="text-gray-600 text-sm leading-relaxed mb-3">
-                            ${day.description}
-                        </p>
-
-                        <div class="pt-3 border-t border-gray-100 flex items-center gap-2 text-xs text-teal-700 font-medium">
-                            <i class="fas fa-bed"></i> <strong>Hébergement :</strong> ${day.hotel}
-                        </div>
-                    </div>
+    return `
+        <article class="stage-card-compact shadow-sm hover:shadow-xl transition duration-300">
+            <!-- Image de Couverture -->
+            <div class="relative h-48 sm:h-52 w-full overflow-hidden bg-gray-100">
+                <img src="${stage.coverImage}" alt="${stage.title}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" loading="lazy" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                
+                <!-- Badge Numéro & Catégorie -->
+                <div class="absolute top-3 left-3 flex items-center gap-1.5">
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold shadow-md bg-white/95 text-teal-950 backdrop-blur-sm">
+                        ${iconEmoji} Étape ${TRIP_STAGES.indexOf(stage) + 1}
+                    </span>
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold shadow-md bg-teal-900/80 text-white backdrop-blur-sm border border-white/20">
+                        ${stage.island || 'Polynésie'}
+                    </span>
                 </div>
-            `).join('')}
-        </div>
+
+                <!-- Date en bas sur l'image -->
+                <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs font-semibold">
+                    <span class="flex items-center gap-1">
+                        <i class="fas fa-calendar-day text-amber-300"></i> ${stage.dates}
+                    </span>
+                    <span class="text-[11px] text-teal-100 bg-black/40 px-2 py-0.5 rounded-md backdrop-blur-sm">
+                        ${stage.weather || '28°C'}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Corps de la carte -->
+            <div class="p-5 flex-1 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-display font-bold text-lg sm:text-xl text-teal-950 mb-2 leading-snug">
+                        ${stage.title}
+                    </h3>
+                    
+                    <p class="text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed mb-4">
+                        ${stage.summary}
+                    </p>
+
+                    <!-- Infos logistiques clés -->
+                    <div class="bg-gray-50 rounded-xl p-2.5 mb-3 text-xs text-gray-700 flex items-center gap-2 border border-gray-100">
+                        <i class="fas fa-hotel text-teal-600 flex-shrink-0"></i>
+                        <span class="truncate font-medium">${stage.hotel || stage.airline || 'Liaison directe'}</span>
+                    </div>
+
+                    <!-- Puces Highlights -->
+                    <ul class="space-y-1 mb-4">
+                        ${highlightsSnippet}
+                    </ul>
+                </div>
+
+                <!-- Bouton d'Action Principal "En savoir plus" -->
+                <div class="pt-3 border-t border-gray-100">
+                    <button onclick="openStageModal('${stage.id}')" class="w-full py-2.5 px-4 bg-teal-50 hover:bg-teal-600 text-teal-800 hover:text-white font-bold rounded-xl text-xs sm:text-sm border border-teal-200/80 transition-all duration-200 flex items-center justify-center gap-2 group shadow-sm">
+                        <span>Découvrir cette étape</span>
+                        <i class="fas fa-arrow-right text-xs transform group-hover:translate-x-1 transition duration-200"></i>
+                    </button>
+                </div>
+            </div>
+        </article>
     `;
 }
 
+// CARTE DÉPLIÉE (Affichage complet au fil de la page si l'utilisateur le choisit)
+function renderStageExpandedCard(stage, idx) {
+    const highlightsHtml = (stage.highlights || []).map(h => `
+        <li class="flex items-center gap-2 text-xs sm:text-sm text-teal-950 mb-1">
+            <span class="text-teal-600 font-bold">✓</span> ${h}
+        </li>
+    `).join('');
+
+    const programHtml = (stage.programDetails || []).map(p => `
+        <li class="text-xs sm:text-sm text-gray-700 mb-1.5 pl-3 border-l-2 border-teal-300">
+            ${p}
+        </li>
+    `).join('');
+
+    return `
+        <article class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-md">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <span class="text-xs font-bold uppercase tracking-wider bg-teal-100 text-teal-900 px-3 py-1 rounded-full">
+                    Étape ${TRIP_STAGES.indexOf(stage) + 1} • ${stage.island || 'Liaison'}
+                </span>
+                <span class="text-xs text-gray-500 font-medium">
+                    <i class="fas fa-calendar-alt text-teal-600 mr-1"></i> ${stage.dates}
+                </span>
+            </div>
+
+            <h3 class="font-display font-bold text-2xl text-teal-950 mb-3">${stage.title}</h3>
+            <p class="text-gray-700 text-sm sm:text-base mb-4 leading-relaxed">${stage.story}</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                <div class="bg-teal-50 p-4 rounded-2xl border border-teal-100 text-xs sm:text-sm">
+                    <strong>Hébergement / Transport :</strong>
+                    <p class="text-gray-700 mt-1">${stage.hotel || stage.airline}</p>
+                </div>
+                ${stage.familyTips ? `
+                    <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 text-xs sm:text-sm">
+                        <strong class="text-amber-950">Conseil Famille & Enfants :</strong>
+                        <p class="text-gray-700 mt-1">${stage.familyTips}</p>
+                    </div>
+                ` : ''}
+            </div>
+
+            ${programHtml ? `
+                <div class="my-4">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-teal-900 mb-2">Au fil des journées :</h4>
+                    <ul class="space-y-1">${programHtml}</ul>
+                </div>
+            ` : ''}
+
+            <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                <button onclick="highlightMapStage('${stage.id}')" class="btn-secondary text-xs">
+                    <i class="fas fa-map-pin mr-1"></i> Situer sur la carte
+                </button>
+            </div>
+        </article>
+    `;
+}
+
+// -----------------------------------------------------------------------------
+// 7. Grande Modale Détaillée d'Étape ("En savoir plus")
+// -----------------------------------------------------------------------------
+function openStageModal(stageId) {
+    if (typeof TRIP_STAGES === 'undefined') return;
+
+    const stage = TRIP_STAGES.find(s => s.id === stageId);
+    if (!stage) return;
+
+    const modalBackdrop = document.getElementById('stage-detail-modal');
+    const modalContent = document.getElementById('stage-modal-content');
+    if (!modalBackdrop || !modalContent) return;
+
+    const isFlight = stage.category === 'flight';
+    const isTransfer = stage.category === 'transfer';
+
+    const highlightsHtml = (stage.highlights || []).map(h => `
+        <li class="flex items-start gap-2 text-xs sm:text-sm text-gray-700">
+            <span class="text-teal-600 font-bold text-sm">✓</span>
+            <span>${h}</span>
+        </li>
+    `).join('');
+
+    const programHtml = (stage.programDetails || []).map(item => `
+        <li class="text-xs sm:text-sm text-gray-700 pl-3.5 border-l-2 border-teal-400 leading-relaxed">
+            ${item}
+        </li>
+    `).join('');
+
+    const externalLinksHtml = (stage.externalLinks || []).map(link => `
+        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-teal-50 text-teal-950 font-bold text-xs border border-teal-200 shadow-sm transition">
+            <i class="fas ${link.icon || 'fa-external-link-alt'} text-teal-600"></i> ${link.label}
+            <i class="fas fa-external-link-alt text-[10px] text-gray-400 ml-1"></i>
+        </a>
+    `).join('');
+
+    const galleryHtml = (stage.gallery || []).map(img => `
+        <img src="${img}" alt="${stage.title}" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover cursor-pointer hover:opacity-85 hover:scale-105 transition shadow-sm" onclick="openLightboxFromUrl('${img}')" />
+    `).join('');
+
+    modalContent.innerHTML = `
+        <!-- Image Héroïque de la Modale -->
+        <div class="relative h-64 sm:h-80 w-full overflow-hidden bg-teal-950">
+            <img src="${stage.coverImage}" alt="${stage.title}" class="w-full h-full object-cover" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+            
+            <div class="absolute bottom-6 left-6 right-6 text-white">
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-teal-950 shadow">
+                        Étape ${TRIP_STAGES.indexOf(stage) + 1} sur 15
+                    </span>
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-md text-white border border-white/30">
+                        📍 ${stage.island || 'Liaison'}
+                    </span>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-black/40 text-teal-200 backdrop-blur-sm">
+                        <i class="fas fa-calendar-alt text-amber-300 mr-1"></i> ${stage.dates}
+                    </span>
+                </div>
+                <h2 class="font-display font-extrabold text-2xl sm:text-4xl text-white drop-shadow-md">
+                    ${stage.title}
+                </h2>
+            </div>
+        </div>
+
+        <!-- Corps Détaillé de la Modale -->
+        <div class="p-6 sm:p-8 space-y-6">
+            
+            <!-- Récit Complet -->
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-widest text-teal-800 mb-2 flex items-center gap-1.5">
+                    <i class="fas fa-book-open text-teal-600"></i> Le Récit de l'Étape
+                </h3>
+                <p class="text-gray-700 text-sm sm:text-base leading-relaxed">
+                    ${stage.story}
+                </p>
+            </div>
+
+            <!-- Hébergement & Transport -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-teal-50/70 p-5 rounded-2xl border border-teal-100 text-xs sm:text-sm">
+                <div>
+                    <strong class="text-teal-950 block mb-1 flex items-center gap-1.5">
+                        <i class="fas fa-hotel text-teal-600"></i> Hébergement & Formule
+                    </strong>
+                    <p class="text-gray-700">${stage.hotel || 'Non applicable'}</p>
+                    ${stage.roomType ? `<p class="text-gray-600 mt-1 italic">${stage.roomType}</p>` : ''}
+                </div>
+                <div>
+                    <strong class="text-teal-950 block mb-1 flex items-center gap-1.5">
+                        <i class="fas fa-plane-arrival text-teal-600"></i> Logistique & Transferts
+                    </strong>
+                    <p class="text-gray-700">${stage.transport || stage.airline || 'Inclus'}</p>
+                </div>
+            </div>
+
+            <!-- Programme Heure par Heure -->
+            ${programHtml ? `
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-teal-800 mb-3 flex items-center gap-1.5">
+                        <i class="fas fa-list-check text-teal-600"></i> Déroulé & Programme Détaillé
+                    </h3>
+                    <ul class="space-y-2.5">
+                        ${programHtml}
+                    </ul>
+                </div>
+            ` : ''}
+
+            <!-- Points Forts -->
+            ${highlightsHtml ? `
+                <div class="bg-amber-50/80 p-5 rounded-2xl border border-amber-200/80">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-amber-950 mb-3 flex items-center gap-1.5">
+                        <i class="fas fa-star text-amber-500"></i> Moments Inoubliables
+                    </h3>
+                    <ul class="space-y-2">
+                        ${highlightsHtml}
+                    </ul>
+                </div>
+            ` : ''}
+
+            <!-- Conseil Spécial Famille & Bébé -->
+            ${stage.familyTips ? `
+                <div class="bg-rose-50/80 p-5 rounded-2xl border border-rose-200 text-xs sm:text-sm text-gray-700 flex items-start gap-3">
+                    <span class="text-2xl mt-0.5">👶</span>
+                    <div>
+                        <strong class="text-rose-950 block mb-1 font-bold">Conseils Famille pour les Jumeaux (7 ans) & Bébé (20 mois) :</strong>
+                        <p class="text-gray-700 leading-relaxed">${stage.familyTips}</p>
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Liens Utiles & Suivis en Direct -->
+            ${externalLinksHtml ? `
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-teal-800 mb-3 flex items-center gap-1.5">
+                        <i class="fas fa-arrow-up-right-from-square text-teal-600"></i> Liens Utiles & Suivi en Direct
+                    </h3>
+                    <div class="flex flex-wrap gap-2">
+                        ${externalLinksHtml}
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Galerie Photo de l'Étape -->
+            ${galleryHtml ? `
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-teal-800 mb-3 flex items-center gap-1.5">
+                        <i class="fas fa-images text-teal-600"></i> Galerie Photos de l'Étape
+                    </h3>
+                    <div class="flex flex-wrap gap-3">
+                        ${galleryHtml}
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Pied de Modale -->
+            <div class="pt-6 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                <button onclick="highlightMapStage('${stage.id}'); closeStageModal();" class="btn-primary text-xs sm:text-sm py-2.5 px-5">
+                    <i class="fas fa-map-pin"></i> Situer sur la carte interactive
+                </button>
+                <button onclick="closeStageModal()" class="btn-secondary text-xs sm:text-sm py-2.5 px-5">
+                    Fermer la fiche
+                </button>
+            </div>
+        </div>
+    `;
+
+    modalBackdrop.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeStageModal() {
+    const modalBackdrop = document.getElementById('stage-detail-modal');
+    if (modalBackdrop) modalBackdrop.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function closeStageModalOnBackdrop(e) {
+    if (e.target.id === 'stage-detail-modal') {
+        closeStageModal();
+    }
+}
+
+function initModalKeyListeners() {
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeStageModal();
+            closeLightbox();
+        }
+    });
+}
+
+// -----------------------------------------------------------------------------
+// 8. Filtres par Île & Catégorie
+// -----------------------------------------------------------------------------
 function renderFilters() {
     const filterContainer = document.getElementById('island-filters');
-    if (!filterContainer || typeof TRIP_STAGES === 'undefined') return;
+    if (!filterContainer) return;
 
-    const baseFilters = [
-        { id: 'all', label: '🌴 Tout le périple (15 étapes)' },
-        { id: 'flights', label: '✈️ Vols & Liaisons (8)' },
-        { id: 'islands', label: '🌺 Les 6 Îles (7)' },
+    const filters = [
+        { id: 'all', label: '🌴 Toutes les étapes (15)' },
+        { id: 'flights', label: '✈️ Vols & Trajets (8)' },
+        { id: 'islands', label: '🌺 Îles & Séjours (7)' },
         { id: 'Tahiti', label: 'Tahiti' },
         { id: 'Moorea', label: 'Moorea' },
         { id: 'Rangiroa', label: 'Rangiroa' },
@@ -1247,69 +737,187 @@ function renderFilters() {
         { id: 'Maupiti', label: 'Maupiti' }
     ];
 
-    filterContainer.innerHTML = baseFilters.map((f, i) => `
-        <button onclick="filterStages('${f.id}')" data-filter="${f.id}" class="filter-btn px-4 py-2 rounded-full text-xs md:text-sm font-semibold transition ${i === 0 ? 'bg-teal-700 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-teal-50'}">
+    filterContainer.innerHTML = filters.map((f, i) => `
+        <button onclick="setFilter('${f.id}')" data-filter="${f.id}" class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold transition ${f.id === currentFilter ? 'bg-teal-700 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-teal-50 border border-gray-200'}">
             ${f.label}
         </button>
     `).join('');
 }
 
-function filterStages(filterId) {
+function setFilter(filterId) {
+    currentFilter = filterId;
+
     document.querySelectorAll('.filter-btn').forEach(btn => {
         if (btn.getAttribute('data-filter') === filterId) {
-            btn.className = 'filter-btn px-4 py-2 rounded-full text-xs md:text-sm font-semibold transition bg-teal-700 text-white shadow-md';
+            btn.className = 'filter-btn px-4 py-1.5 rounded-full text-xs font-semibold transition bg-teal-700 text-white shadow-sm';
         } else {
-            btn.className = 'filter-btn px-4 py-2 rounded-full text-xs md:text-sm font-semibold transition bg-white text-gray-700 hover:bg-teal-50';
+            btn.className = 'filter-btn px-4 py-1.5 rounded-full text-xs font-semibold transition bg-white text-gray-700 hover:bg-teal-50 border border-gray-200';
         }
     });
 
-    if (filterId === 'all') {
-        renderTimeline(TRIP_STAGES);
-    } else if (filterId === 'flights') {
-        const filtered = TRIP_STAGES.filter(s => s.category === 'flight' || s.category === 'transfer');
-        renderTimeline(filtered);
-    } else if (filterId === 'islands') {
-        const filtered = TRIP_STAGES.filter(s => s.category === 'island');
-        renderTimeline(filtered);
-    } else {
-        const filtered = TRIP_STAGES.filter(s => (s.island && s.island.toLowerCase() === filterId.toLowerCase()));
-        renderTimeline(filtered);
+    renderTimeline();
+}
+
+function resetFilters() {
+    currentFilter = 'all';
+    currentSearchQuery = '';
+    const searchInput = document.getElementById('stage-search-input');
+    if (searchInput) searchInput.value = '';
+    renderFilters();
+    renderTimeline();
+}
+
+// -----------------------------------------------------------------------------
+// 9. Liste des Vols Inter-Îles Air Tahiti
+// -----------------------------------------------------------------------------
+function renderFlightsList() {
+    const container = document.getElementById('flights-list');
+    if (!container || typeof TRIP_FLIGHTS === 'undefined') return;
+
+    container.innerHTML = TRIP_FLIGHTS.map((flight) => {
+        const isInter = flight.category === 'international';
+        const badgeColor = isInter ? 'bg-teal-100 text-teal-900 border-teal-200' : 'bg-amber-100 text-amber-900 border-amber-200';
+
+        return `
+            <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200/80 hover:bg-teal-50/50 transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm ${badgeColor} border">
+                        ✈
+                    </span>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-teal-950 text-sm sm:text-base">${flight.route}</span>
+                            <span class="font-mono text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">${flight.flightNumber}</span>
+                        </div>
+                        <span class="text-xs text-gray-500 block">
+                            ${flight.date} • ${flight.times} • ${flight.airline} (${flight.aircraft})
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-gray-600 w-full sm:w-auto justify-end">
+                    <span class="text-[11px] bg-white px-2.5 py-1 rounded-lg border border-gray-200">
+                        🧳 Soute : 23 kg/pers
+                    </span>
+                    ${flight.flightNumber.startsWith('TN') ? `
+                        <a href="https://www.flightaware.com/live/flight/${flight.flightNumber === 'TN57' ? 'THT57' : 'THT8'}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-lg bg-teal-600 text-white font-semibold text-[11px] hover:bg-teal-700 transition">
+                            Suivre
+                        </a>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// -----------------------------------------------------------------------------
+// 10. Carte Interactive Leaflet
+// -----------------------------------------------------------------------------
+function initMap() {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer || typeof L === 'undefined' || typeof TRIP_STAGES === 'undefined') return;
+
+    if (map) {
+        map.remove();
+        markers = [];
+    }
+
+    // Centrer sur la Société / Tuamotu
+    map = L.map('map', { scrollWheelZoom: false }).setView([-16.8, -149.8], 7);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18,
+    }).addTo(map);
+
+    const islandStages = TRIP_STAGES.filter(s => s.coords && s.coords.length === 2);
+    const coordsList = islandStages.map(s => s.coords);
+
+    if (coordsList.length > 0) {
+        polyline = L.polyline(coordsList, {
+            color: '#028090',
+            weight: 3,
+            dashArray: '8, 8',
+            opacity: 0.8
+        }).addTo(map);
+    }
+
+    islandStages.forEach((stage, index) => {
+        const iconEmoji = (index + 1);
+
+        const customIcon = L.divIcon({
+            className: 'custom-map-marker',
+            html: `<span>${iconEmoji}</span>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+            popupAnchor: [0, -20]
+        });
+
+        const marker = L.marker(stage.coords, { icon: customIcon }).addTo(map);
+
+        const popupContent = `
+            <div style="width: 240px; font-family: inherit;">
+                <img src="${stage.coverImage}" alt="${stage.title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px 8px 0 0;" />
+                <div style="padding: 12px;">
+                    <h4 style="font-weight: 700; font-size: 0.95rem; color: #264653; margin-bottom: 2px;">${stage.island || stage.title}</h4>
+                    <p style="font-size: 0.8rem; color: #52796F; margin-bottom: 6px;"><strong>${stage.dates}</strong></p>
+                    <p style="font-size: 0.75rem; color: #555; line-height: 1.3; margin-bottom: 10px;">${stage.summary}</p>
+                    <button onclick="openStageModal('${stage.id}')" style="display: block; width: 100%; text-align: center; background: #028090; color: white; padding: 6px 10px; border-radius: 8px; border: none; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                        Découvrir l'étape →
+                    </button>
+                </div>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent);
+        markers.push({ stageId: stage.id, marker: marker });
+    });
+
+    if (coordsList.length > 0) {
+        map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
+    }
+}
+
+function highlightMapStage(stageId) {
+    if (!map) return;
+
+    const item = markers.find(m => m.stageId === stageId);
+    if (item) {
+        const mapEl = document.getElementById('carte');
+        if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => {
+            map.flyTo(item.marker.getLatLng(), 9, { duration: 1.2 });
+            item.marker.openPopup();
+        }, 300);
     }
 }
 
 // -----------------------------------------------------------------------------
-// 5. Galerie Photo Complète
+// 11. Galerie Photos Plein Écran (Lightbox)
 // -----------------------------------------------------------------------------
 function renderGallery() {
-    const galleryContainer = document.getElementById('photo-gallery');
-    if (!galleryContainer) return;
+    const container = document.getElementById('photo-gallery');
+    if (!container || typeof TRIP_STAGES === 'undefined') return;
 
-    // Rassembler toutes les photos des étapes
-    const allPhotos = [];
+    const photos = [];
     TRIP_STAGES.forEach(stage => {
-        allPhotos.push({ url: stage.coverImage, caption: `${stage.island} - ${stage.title}` });
-        stage.gallery.forEach(img => {
-            if (img !== stage.coverImage) {
-                allPhotos.push({ url: img, caption: `${stage.island}` });
-            }
+        if (stage.coverImage) photos.push({ url: stage.coverImage, caption: `${stage.island} • ${stage.title}` });
+        (stage.gallery || []).forEach(img => {
+            if (img !== stage.coverImage) photos.push({ url: img, caption: `${stage.island}` });
         });
     });
 
-    currentLightboxImages = allPhotos.map(p => p.url);
+    currentLightboxImages = photos.map(p => p.url);
 
-    galleryContainer.innerHTML = allPhotos.map((photo, index) => `
-        <div class="gallery-item" onclick="openLightbox(${index})">
-            <img src="${photo.url}" alt="${photo.caption}" loading="lazy" />
-            <div class="overlay">
-                <p class="text-sm font-medium"><i class="fas fa-camera mr-1"></i> ${photo.caption}</p>
+    container.innerHTML = photos.map((p, idx) => `
+        <div class="gallery-item rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer relative group" onclick="openLightbox(${idx})">
+            <img src="${p.url}" alt="${p.caption}" class="w-full h-48 sm:h-56 object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+            <div class="overlay absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3 text-white text-xs font-semibold">
+                ${p.caption}
             </div>
         </div>
     `).join('');
 }
 
-// -----------------------------------------------------------------------------
-// 6. Lightbox Plein Écran
-// -----------------------------------------------------------------------------
 function initLightbox() {
     const modal = document.getElementById('lightbox-modal');
     if (!modal) return;
@@ -1319,26 +927,19 @@ function initLightbox() {
             closeLightbox();
         }
     });
-
-    document.addEventListener('keydown', (e) => {
-        if (!modal.classList.contains('active')) return;
-        if (e.key === 'Escape') closeLightbox();
-        if (e.key === 'ArrowRight') nextLightbox();
-        if (e.key === 'ArrowLeft') prevLightbox();
-    });
 }
 
 function openLightbox(index) {
     currentLightboxIndex = index;
     updateLightboxContent();
     const modal = document.getElementById('lightbox-modal');
-    modal.classList.add('active');
+    if (modal) modal.classList.add('active');
 }
 
 function openLightboxFromUrl(url) {
-    const foundIdx = currentLightboxImages.indexOf(url);
-    if (foundIdx !== -1) {
-        openLightbox(foundIdx);
+    const idx = currentLightboxImages.indexOf(url);
+    if (idx !== -1) {
+        openLightbox(idx);
     } else {
         currentLightboxImages.push(url);
         openLightbox(currentLightboxImages.length - 1);
@@ -1347,7 +948,7 @@ function openLightboxFromUrl(url) {
 
 function closeLightbox() {
     const modal = document.getElementById('lightbox-modal');
-    modal.classList.remove('active');
+    if (modal) modal.classList.remove('active');
 }
 
 function nextLightbox() {
@@ -1367,3 +968,18 @@ function updateLightboxContent() {
     if (counterEl) counterEl.textContent = `${currentLightboxIndex + 1} / ${currentLightboxImages.length}`;
 }
 
+// -----------------------------------------------------------------------------
+// 12. Bouton Retour en Haut
+// -----------------------------------------------------------------------------
+function initBackToTop() {
+    const btn = document.getElementById('back-to-top');
+    if (!btn) return;
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 400) {
+            btn.classList.add('visible');
+        } else {
+            btn.classList.remove('visible');
+        }
+    });
+}

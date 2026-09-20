@@ -249,12 +249,151 @@ body {
     padding: 0.6rem 1.25rem;
     border-radius: 9999px;
     font-weight: 600;
-    cursor: pointer;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .btn-secondary:hover {
-    background: var(--color-lagoon-pale);
+    background-color: var(--color-lagoon-pale);
+    border-color: var(--color-lagoon);
+}
+
+/* ==========================================================================
+   MODALE D'ÉTAPE DÉTAILLÉE ("EN SAVOIR PLUS")
+   ========================================================================== */
+.stage-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stage-modal-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.stage-modal-dialog {
+    background: #ffffff;
+    border-radius: 1.75rem;
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transform: scale(0.95) translateY(10px);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stage-modal-backdrop.active .stage-modal-dialog {
+    transform: scale(1) translateY(0);
+}
+
+/* Bouton Fermer Modale */
+.modal-close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 50;
+}
+
+.modal-close-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: rotate(90deg) scale(1.05);
+}
+
+/* Onglets Principaux (Navigation Header) */
+.nav-tab-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #52796F;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.nav-tab-btn:hover {
+    color: #028090;
+    background: #E0F2F1;
+}
+
+.nav-tab-btn.active {
+    background: #028090;
+    color: white;
+    box-shadow: 0 4px 12px rgba(2, 128, 144, 0.25);
+}
+
+/* Carte Compacte d'Étape (Vue Épurée) */
+.stage-card-compact {
+    background: white;
+    border-radius: 1.5rem;
+    border: 1px solid #E2E8F0;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.stage-card-compact:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 35px -10px rgba(2, 128, 144, 0.15);
+    border-color: #99F6E4;
+}
+
+/* Bouton Retour en haut */
+#back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    background: #028090;
+    color: white;
+    box-shadow: 0 10px 25px rgba(2, 128, 144, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 40;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+#back-to-top.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+#back-to-top:hover {
+    background: #00A896;
+    transform: translateY(-3px) scale(1.05);
 }
 
 /* Smooth scroll */
