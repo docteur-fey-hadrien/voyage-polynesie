@@ -1,0 +1,295 @@
+/* ==========================================================================
+   CARNET DE VOYAGE POLYNÉSIE - FEUILLE DE STYLE
+   Thème : Lagon Turquoise, Sable Chaud, Coucher de soleil
+   ========================================================================== */
+
+:root {
+    --color-lagoon: #028090;
+    --color-lagoon-light: #00A896;
+    --color-lagoon-pale: #E0F2F1;
+    --color-sand: #FAF7F2;
+    --color-sand-dark: #ECE5D8;
+    --color-sunset: #F4A261;
+    --color-coral: #E76F51;
+    --color-text-main: #264653;
+    --color-text-muted: #52796F;
+    --color-white: #FFFFFF;
+    --shadow-soft: 0 10px 25px -5px rgba(2, 128, 144, 0.1), 0 8px 10px -6px rgba(2, 128, 144, 0.05);
+    --shadow-card: 0 15px 35px -5px rgba(38, 70, 83, 0.12), 0 5px 15px rgba(0, 0, 0, 0.04);
+    --radius-lg: 1.25rem;
+    --radius-xl: 1.75rem;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--color-sand);
+    color: var(--color-text-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Police des titres */
+.font-display {
+    font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Hero Section */
+.hero-gradient {
+    background: linear-gradient(180deg, rgba(2, 48, 71, 0.75) 0%, rgba(2, 128, 144, 0.6) 60%, rgba(250, 247, 242, 1) 100%), 
+                url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+}
+
+/* Badges de Statut */
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-completed {
+    background-color: #E6F4EA;
+    color: #137333;
+    border: 1px solid #CEEAD6;
+}
+
+.badge-current {
+    background-color: #FEF7E0;
+    color: #B06000;
+    border: 1px solid #FEEFC3;
+    animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.badge-upcoming {
+    background-color: #E8F0FE;
+    color: #1A73E8;
+    border: 1px solid #D2E3FC;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(244, 162, 97, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(244, 162, 97, 0); }
+}
+
+/* Carte Leaflet Customisée */
+#map {
+    height: 480px;
+    width: 100%;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    z-index: 10;
+}
+
+/* Marqueur personnalisé sur la carte */
+.custom-map-marker {
+    background: white;
+    border: 3px solid var(--color-lagoon);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.custom-map-marker:hover {
+    transform: scale(1.2);
+    border-color: var(--color-sunset);
+}
+
+.custom-map-marker.active-marker {
+    border-color: var(--color-sunset);
+    background: #FFF3E0;
+    transform: scale(1.15);
+    box-shadow: 0 0 0 5px rgba(244, 162, 97, 0.4);
+}
+
+/* Popup Leaflet */
+.leaflet-popup-content-wrapper {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 0;
+    overflow: hidden;
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Cartes des étapes dans la timeline */
+.stage-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+}
+
+.stage-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -10px rgba(2, 128, 144, 0.18);
+}
+
+/* Vignettes Galerie */
+.gallery-item {
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    position: relative;
+}
+
+.gallery-item img {
+    transition: transform 0.4s ease;
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.08);
+}
+
+.gallery-item .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(2, 48, 71, 0.7), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem;
+    color: white;
+}
+
+.gallery-item:hover .overlay {
+    opacity: 1;
+}
+
+/* Modal Lightbox pour photos */
+.lightbox-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.lightbox-modal.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.lightbox-img {
+    max-height: 85vh;
+    max-width: 90vw;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    object-fit: contain;
+}
+
+/* Livre d'or cards */
+.guestbook-card {
+    background: white;
+    border-left: 4px solid var(--color-lagoon-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    padding: 1.25rem;
+    transition: transform 0.2s ease;
+}
+
+.guestbook-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Boutons personnalisés */
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-lagoon) 0%, var(--color-lagoon-light) 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px rgba(2, 128, 144, 0.35);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(2, 128, 144, 0.5);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: white;
+    color: var(--color-lagoon);
+    border: 1px solid var(--color-lagoon-light);
+    padding: 0.6rem 1.25rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: var(--color-lagoon-pale);
+}
+
+/* Smooth scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Bandeau d'étape et Scrollbar invisible */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.ribbon-pill {
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ribbon-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.ribbon-pill.active {
+    background: #FFFFFF !important;
+    color: #0F3E48 !important;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+    border-color: #F59E0B !important;
+}
+
+.ribbon-pill.active .ribbon-badge {
+    background-color: #F59E0B;
+    color: #FFFFFF;
+}
