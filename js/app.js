@@ -100,10 +100,8 @@ function initSecurityGate() {
 
             const rawJs = await decryptPayload(pass, ENCRYPTED_TRIP_PAYLOAD);
 
-            // Injection du script déchiffré directement dans le DOM pour que toutes les variables globales existent
-            const scriptEl = document.createElement('script');
-            scriptEl.textContent = rawJs;
-            document.head.appendChild(scriptEl);
+            // Injection et exécution immédiate du script déchiffré
+            window.eval(rawJs);
 
             if (saveOnSuccess) {
                 localStorage.setItem('polynesie_family_token', pass);
@@ -124,25 +122,28 @@ function initSecurityGate() {
 }
 
 function launchApplication() {
+    // S'assurer que les données du voyage sont disponibles
+    const stages = window.TRIP_STAGES || [];
+    
     initHeroData();
     initLiveCountdown();
     renderStagesRibbon();
     renderFlightsList();
     initMap();
-    if (typeof TRIP_STAGES !== 'undefined') {
-        renderTimeline(TRIP_STAGES);
-    }
+    renderTimeline(stages);
     renderFilters();
     renderGallery();
-    initGuestbook();
     initLightbox();
 
     // Recalculer la taille de la carte Leaflet après affichage du conteneur
     setTimeout(() => {
         if (map) {
             map.invalidateSize();
+            if (polyline) {
+                map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
+            }
         }
-    }, 200);
+    }, 300);
 }
 
 // -----------------------------------------------------------------------------
@@ -773,79 +774,3 @@ function updateLightboxContent() {
     if (counterEl) counterEl.textContent = `${currentLightboxIndex + 1} / ${currentLightboxImages.length}`;
 }
 
-// -----------------------------------------------------------------------------
-// 7. Livre d'or Familial (100% Sécurisé via WhatsApp & Affichage Local)
-// -----------------------------------------------------------------------------
-function initGuestbook() {
-    renderGuestbook();
-
-    const form = document.getElementById('guestbook-form');
-
-    if (form) {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const nameInput = document.getElementById('gb-name');
-            const avatarInput = document.getElementById('gb-avatar');
-            const messageInput = document.getElementById('gb-message');
-
-            const author = nameInput ? nameInput.value.trim() : '';
-            const avatar = avatarInput ? avatarInput.value : '🌺';
-            const message = messageInput ? messageInput.value.trim() : '';
-
-            if (!author || !message) return;
-
-            // 1. Enregistrement local immédiat pour affichage sur le site
-            const stored = JSON.parse(localStorage.getItem('polynesia_guestbook') || '[]');
-            const newEntry = {
-                id: Date.now(),
-                author: author,
-                avatar: avatar,
-                date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
-                message: message
-            };
-
-            stored.unshift(newEntry);
-            localStorage.setItem('polynesia_guestbook', JSON.stringify(stored));
-            renderGuestbook();
-
-            // 2. Préparation du message formaté pour WhatsApp (100% direct et privé)
-            const text = `Ia Orana toute la Tribu ! ${avatar}\nC'est ${author} :\n"${message}"\n\n(Envoyé depuis votre carnet de voyage en Polynésie 🌴)`;
-            const encodedText = encodeURIComponent(text);
-
-            // Notification visuelle de succès
-            const successMsg = document.getElementById('gb-success');
-            if (successMsg) {
-                successMsg.classList.remove('hidden');
-                setTimeout(() => successMsg.classList.add('hidden'), 5000);
-            }
-
-            // Réinitialiser le formulaire
-            nameInput.value = '';
-            messageInput.value = '';
-
-            // 3. Ouvre WhatsApp directement dans un nouvel onglet / application mobile
-            window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
-        });
-    }
-}
-
-function renderGuestbook() {
-    const container = document.getElementById('guestbook-list');
-    if (!container) return;
-
-    const customMessages = JSON.parse(localStorage.getItem('polynesia_guestbook') || '[]');
-    const allMessages = [...customMessages, ...INITIAL_GUESTBOOK];
-
-    container.innerHTML = allMessages.map(msg => `
-        <div class="guestbook-card mb-4 bg-white p-5 rounded-2xl border-l-4 border-teal-500 shadow-sm">
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl p-2 bg-teal-50 rounded-xl">${msg.avatar}</span>
-                    <strong class="text-gray-800 font-semibold">${msg.author}</strong>
-                </div>
-                <span class="text-xs text-gray-400 font-medium">${msg.date}</span>
-            </div>
-            <p class="text-gray-600 text-sm pl-12 leading-relaxed">${msg.message}</p>
-        </div>
-    `).join('');
-}
