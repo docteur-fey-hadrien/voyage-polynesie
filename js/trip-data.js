@@ -875,16 +875,42 @@ const TRIP_FLIGHTS = [
     }
 ];
 
+// =============================================================================
+// PROGRAMME DÉTAILLÉ JOUR PAR JOUR (24 JOURNÉES DU 09/10 AU 01/11/2026)
+// =============================================================================
 const DAILY_PROGRAM = [
     {
         "dayNumber": 1,
         "date": "Vendredi 09 Octobre 2026",
         "island": "Tahiti",
-        "type": "Vol Aller International & Arrivée",
         "icon": "✈️",
         "title": "Le Grand Envol vers le Pacifique & Arrivée sous les Tiaré",
-        "description": "À 12h05, décollage de Paris Roissy CDG à bord du Boeing 787-9 Dreamliner d'Air Tahiti Nui (vol TN57). Traversée de l'Atlantique, survol des États-Unis et escale technique à Los Angeles (LAX). Arrivée magique à 21h45 à Tahiti Faa'a sous la douce brise des tropiques. Accueil traditionnel inoubliable au son des ukulélés et remise des colliers de fleurs de tiaré embaumant la nuit. Transfert privatif et nuit à l'hôtel Le Tahiti by Pearl Resort face à la baie de Matavai.",
+        "story": "À 12h05, décollage de Paris Roissy CDG à bord du Boeing 787-9 Dreamliner d'Air Tahiti Nui (vol TN57). Traversée de l'Atlantique, survol des États-Unis et escale technique à Los Angeles (LAX). Arrivée magique à 21h45 à Tahiti Faa'a sous la douce brise des tropiques. Accueil traditionnel inoubliable au son des ukulélés et remise des colliers de fleurs de tiaré embaumant la nuit. Transfert privatif et nuit à l'hôtel Le Tahiti by Pearl Resort face à la baie de Matavai.",
         "hotel": "Le Tahiti by Pearl Resort 4* (Ocean View Suite)",
+        "confirmed": [
+            {
+                "type": "flight",
+                "label": "Vol International Air Tahiti Nui TN57",
+                "detail": "Paris CDG ➔ Tahiti Faa'a via LAX (12h05 ➔ 21h45)"
+            },
+            {
+                "type": "transfer",
+                "label": "Accueil traditionnel & Transfert privatif",
+                "detail": "Remise des colliers de fleurs de tiaré fraîches & navette vers l'hôtel"
+            },
+            {
+                "type": "hotel",
+                "label": "Le Tahiti by Pearl Resort 4*",
+                "detail": "Ocean View Suite • Petits-déjeuners inclus"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "rest",
+                "label": "Repos & Récupération",
+                "detail": "Installation dans la suite et bonne nuit de sommeil pour les enfants après les 22h de voyage."
+            }
+        ],
         "hasFlight": true,
         "flight": {
             "flightNumber": "TN57",
@@ -898,14 +924,9 @@ const DAILY_PROGRAM = [
                     "icon": "fa-satellite-dish"
                 },
                 {
-                    "label": "Flightradar24",
+                    "label": "Flightradar24 TN57",
                     "url": "https://www.flightradar24.com/data/flights/tn57",
                     "icon": "fa-plane"
-                },
-                {
-                    "label": "Aéroport Tahiti Faa'a",
-                    "url": "https://www.tahiti-aeroport.pf/",
-                    "icon": "fa-building"
                 }
             ]
         }
@@ -914,29 +935,85 @@ const DAILY_PROGRAM = [
         "dayNumber": 2,
         "date": "Samedi 10 Octobre 2026",
         "island": "Tahiti Iti",
-        "type": "Excursion Lagon & Presqu'île",
         "icon": "🌊",
         "title": "La Vague Mythique de Teahupoo & Snorkeling Coral Head",
-        "description": "Première matinée polynésienne avec vue imprenable sur l'océan. Journée d'aventure vers la presqu'île de Tahiti Iti : embarquement en bateau pour approcher la spectaculaire vague de Teahupoo (spot des JO 2024). Découverte de la rivière Vaiau et des falaises sauvages du Pari. Pause magique de snorkeling sur le spot de Wonderful Coral Head au milieu des poissons multicolores. Déjeuner inclus les pieds dans l'eau et visite des jardins d'eau de Vaipahi.",
+        "story": "Première matinée polynésienne avec vue imprenable sur l'océan. Journée d'aventure vers la presqu'île de Tahiti Iti : embarquement en bateau pour approcher la spectaculaire vague de Teahupoo (spot des JO 2024). Découverte de la rivière Vaiau et des falaises sauvages du Pari. Pause magique de snorkeling sur le spot de Wonderful Coral Head au milieu des poissons multicolores. Déjeuner inclus les pieds dans l'eau et visite des jardins d'eau de Vaipahi.",
         "hotel": "Le Tahiti by Pearl Resort 4* (Ocean View Suite)",
+        "confirmed": [
+            {
+                "type": "excursion",
+                "label": "Excursion privative en bateau à Tahiti Iti",
+                "detail": "Approche de la vague mythique de Teahupoo, rivière Vaiau & falaises du Pari"
+            },
+            {
+                "type": "activity",
+                "label": "Session Snorkeling guidée Wonderful Coral Head",
+                "detail": "Massifs coralliens préservés et nuées de poissons tropicaux"
+            },
+            {
+                "type": "meal",
+                "label": "Déjeuner traditionnel inclus",
+                "detail": "Repas convivial les pieds dans l'eau"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "nature",
+                "label": "Jardins d'eau de Vaipahi",
+                "detail": "Balade ombragée le long des cascades, bassins de lotus et nénuphars géants."
+            },
+            {
+                "type": "relax",
+                "label": "Piscine à débordement",
+                "detail": "Premier bain dans la piscine du Pearl Resort face au coucher de soleil sur l'océan."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 3,
         "date": "Dimanche 11 Octobre 2026",
         "island": "Tahiti ➔ Moorea",
-        "type": "Traversée Maritime en Ferry",
         "icon": "⛴️",
         "title": "Traversée en Ferry vers Moorea, l'Île Sœur",
-        "description": "Petit-déjeuner buffet au bord du lagon, puis transfert au port de Papeete. Traversée maritime de 35 minutes à bord du ferry Aremiti/Terevau, souvent escorté par des dauphins joueurs. Arrivée dans la baie de Vaiare à Moorea, prise en main de notre voiture familiale et installation au Moorea Sunset Beach dans notre bungalow plage les pieds dans le sable fin de Haapiti.",
+        "story": "Petit-déjeuner buffet au bord du lagon, puis transfert au port de Papeete. Traversée maritime de 35 minutes à bord du ferry Aremiti/Terevau, souvent escorté par des dauphins joueurs. Arrivée dans la baie de Vaiare à Moorea, prise en main de notre voiture familiale et installation au Moorea Sunset Beach dans notre bungalow plage les pieds dans le sable fin de Haapiti.",
         "hotel": "Moorea Sunset Beach (Bungalow Plage)",
+        "confirmed": [
+            {
+                "type": "transfer",
+                "label": "Traversée Maritime en Ferry",
+                "detail": "Port de Papeete ➔ Moorea Vaiare (Aremiti / Terevau, 35 min)"
+            },
+            {
+                "type": "rental",
+                "label": "Location Voiture Familiale (Peugeot Rifter ou similaire)",
+                "detail": "Grand coffre pour bagages & siège bébé inclus (du 11 au 16/10)"
+            },
+            {
+                "type": "hotel",
+                "label": "Moorea Sunset Beach",
+                "detail": "Bungalow Plage les pieds dans le sable • Cuisine équipée"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "shopping",
+                "label": "Courses de produits frais",
+                "detail": "Arrêt au Super U d'Aremiti pour garnir la cuisine du bungalow (fruits exotiques, lait, viennoiseries)."
+            },
+            {
+                "type": "relax",
+                "label": "Coucher de soleil à Haapiti",
+                "detail": "Baignade au crépuscule dans les eaux tièdes du lagon face au bungalow."
+            }
+        ],
         "hasFlight": false,
         "ferry": {
             "name": "Ferry Aremiti / Terevau",
             "route": "Port de Papeete ➔ Moorea Vaiare (35 min)",
             "links": [
                 {
-                    "label": "Horaires & Infos Ferry Aremiti",
+                    "label": "Horaires Ferry Aremiti",
                     "url": "https://www.aremiti.pf/",
                     "icon": "fa-ship"
                 },
@@ -952,55 +1029,160 @@ const DAILY_PROGRAM = [
         "dayNumber": 4,
         "date": "Lundi 12 Octobre 2026",
         "island": "Moorea",
-        "type": "Sortie Lagon en Famille",
         "icon": "🐠",
         "title": "Bateau à Fond de Verre & Pique-Nique sur un Motu",
-        "description": "Journée de pure féerie sur le lagon pour toute la tribu. Sortie en bateau à fond de verre, idéale pour les jumeaux et bébé qui découvrent les tortues et les coraux sans plonger. Baignade mémorable avec les raies pastenagues et les petits requins à pointes noires inoffensifs. Pique-nique tahitien les pieds dans l'eau sur un motu inhabité avec poisson cru au lait de coco préparé devant nous.",
+        "story": "Journée de pure féerie sur le lagon pour toute la tribu. Sortie en bateau à fond de verre, idéale pour les jumeaux et bébé qui découvrent les tortues et les coraux sans plonger. Baignade mémorable avec les raies pastenagues et les petits requins à pointes noires inoffensifs. Pique-nique tahitien les pieds dans l'eau sur un motu inhabité avec poisson cru au lait de coco préparé devant nous.",
         "hotel": "Moorea Sunset Beach (Bungalow Plage)",
+        "confirmed": [
+            {
+                "type": "excursion",
+                "label": "Excursion lagon en bateau à fond de verre",
+                "detail": "Idéal enfants & bébé pour voir le récif sans nager"
+            },
+            {
+                "type": "activity",
+                "label": "Baignade avec les raies & petits requins inoffensifs",
+                "detail": "Banc de sable peu profond et eau turquoise limpide"
+            },
+            {
+                "type": "meal",
+                "label": "Pique-nique motu traditionnel inclus",
+                "detail": "Poisson cru au lait de coco, grillades et fruits tropicaux"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "relax",
+                "label": "Après-midi farniente",
+                "detail": "Sieste des petits sous les cocotiers et châteaux de sable avec les jumeaux."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 5,
         "date": "Mardi 13 Octobre 2026",
         "island": "Moorea",
-        "type": "Observation des Cétacés",
         "icon": "🐋",
         "title": "La Rencontre Majestueuse avec les Baleines à Bosse",
-        "description": "Le moment fort en émotion du séjour ! Sortie respectueuse en petit comité pour observer les géantes des mers venues mettre bas dans les eaux calmes du Pacifique. Organisation alternée pour que Papa et Maman puissent nager avec les baleines chacun leur tour tout en veillant sur bébé et les enfants. Écoute de leur chant envoûtant grâce à l'hydrophone sous-marin.",
+        "story": "Le moment fort en émotion du séjour ! Sortie respectueuse en petit comité pour observer les géantes des mers venues mettre bas dans les eaux calmes du Pacifique. Organisation alternée pour que Papa et Maman puissent nager avec les baleines chacun leur tour tout en veillant sur bébé et les enfants. Écoute de leur chant envoûtant grâce à l'hydrophone sous-marin.",
         "hotel": "Moorea Sunset Beach (Bungalow Plage)",
+        "confirmed": [
+            {
+                "type": "excursion",
+                "label": "Sortie Baleines à bosse (créneaux séparés)",
+                "detail": "Matinée pour Maman, après-midi pour Papa (garde alternée de bébé & jumeaux)"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "beach",
+                "label": "Matinée plage en alternance",
+                "detail": "Pendant que l'un est en mer, l'autre profite de la plage de Haapiti avec les enfants."
+            },
+            {
+                "type": "dinner",
+                "label": "Dîner familial sous les étoiles",
+                "detail": "Dégustation de mahi-mahi grillé préparé au bungalow."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 6,
         "date": "Mercredi 14 Octobre 2026",
         "island": "Moorea",
-        "type": "Plage & Souvenirs",
         "icon": "📸",
         "title": "Plage des Tipaniers & Séance Photo dans le Lagon",
-        "description": "Matinée sur la carte postale de la plage des Tipaniers : eau transparente à 29°C, sable blanc et cocotiers penchés. Séance photo privative dans l'eau translucide avec les enfants et les raies pour immortaliser cette aventure en famille. Après-midi châteaux de sable avec bébé et dégustation de fruits frais sur la terrasse.",
+        "story": "Matinée sur la carte postale de la plage des Tipaniers : eau transparente à 29°C, sable blanc et cocotiers penchés. Séance photo privative dans l'eau translucide avec les enfants et les raies pour immortaliser cette aventure en famille. Après-midi châteaux de sable avec bébé et dégustation de fruits frais sur la terrasse.",
         "hotel": "Moorea Sunset Beach (Bungalow Plage)",
+        "confirmed": [
+            {
+                "type": "activity",
+                "label": "Séance Photo Privative dans le lagon",
+                "detail": "Shooting famille dans l'eau translucide avec les raies (créneau validé 14 ou 15/10)"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "beach",
+                "label": "Plage des Tipaniers",
+                "detail": "Baignade dans l'un des plus beaux spots de lagon de Moorea."
+            },
+            {
+                "type": "taste",
+                "label": "Jus d'ananas de Moorea",
+                "detail": "Dégustation des célèbres jus frais de l'usine Rotui."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 7,
         "date": "Jeudi 15 Octobre 2026",
         "island": "Moorea",
-        "type": "Exploration Intérieure & Nature",
         "icon": "🍍",
         "title": "Belvédère d'Opunohu, Baie de Cook & Champs d'Ananas",
-        "description": "Découverte de l'intérieur luxuriant de l'île en voiture : montée au Belvédère avec un panorama époustouflant sur le mont Rotui et les baies jumelles de Cook et d'Opunohu. Visite des marae ancestraux sous les arbres centenaires, halte au lycée agricole pour goûter les sorbets artisanaux à la vanille de Moorea et balade au milieu des plantations d'ananas Queen Tahiti.",
+        "story": "Découverte de l'intérieur luxuriant de l'île en voiture : montée au Belvédère avec un panorama époustouflant sur le mont Rotui et les baies jumelles de Cook et d'Opunohu. Visite des marae ancestraux sous les arbres centenaires, halte au lycée agricole pour goûter les sorbets artisanaux à la vanille de Moorea et balade au milieu des plantations d'ananas Queen Tahiti.",
         "hotel": "Moorea Sunset Beach (Bungalow Plage)",
+        "confirmed": [
+            {
+                "type": "rental",
+                "label": "Voiture familiale disponible",
+                "detail": "Véhicule à disposition pour explorer l'île en totale autonomie"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "view",
+                "label": "Ascension au Belvédère d'Opunohu",
+                "detail": "Vue spectaculaire sur les deux baies jumelles et le mont Rotui."
+            },
+            {
+                "type": "taste",
+                "label": "Glaces du Lycée Agricole",
+                "detail": "Arrêt gourmand pour des sorbets maison à la vanille et fruits de la passion."
+            },
+            {
+                "type": "show",
+                "label": "Projet Soirée Tiki Village",
+                "detail": "Spectacle traditionnel de danses et percussions polynésiennes."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 8,
         "date": "Vendredi 16 Octobre 2026",
         "island": "Moorea ➔ Rangiroa",
-        "type": "Vol Air Tahiti vers les Tuamotu",
         "icon": "✈️",
         "title": "L'Envol vers l'Atoll Géant de Rangiroa",
-        "description": "Traversée retour en ferry vers Tahiti puis envol à 14h00 à bord du vol Air Tahiti VT244 vers Rangiroa, le plus grand atoll de Polynésie. Le survol aérien des couronnes de corail et des nuances infinies de bleu est un choc visuel absolu ! Atterrissage sur la fine bande de corail et installation au Raira Lagon en bungalow jardin au bord de l'eau.",
+        "story": "Traversée retour en ferry vers Tahiti puis envol à 14h00 à bord du vol Air Tahiti VT244 vers Rangiroa, le plus grand atoll de Polynésie. Le survol aérien des couronnes de corail et des nuances infinies de bleu est un choc visuel absolu ! Atterrissage sur la fine bande de corail et installation au Raira Lagon en bungalow jardin au bord de l'eau.",
         "hotel": "Raira Lagon (Bungalow Jardin - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "transfer",
+                "label": "Ferry retour Moorea ➔ Tahiti",
+                "detail": "Traversée maritime & restitution de la voiture de location"
+            },
+            {
+                "type": "flight",
+                "label": "Vol Air Tahiti VT244 (Tahiti ➔ Rangiroa)",
+                "detail": "Décollage 14h00 • Survol majestueux de l'atoll (durée 1h00)"
+            },
+            {
+                "type": "hotel",
+                "label": "Pension Raira Lagon",
+                "detail": "Bungalow Jardin • Demi-pension (petits-déjeuners & dîners inclus)"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "relax",
+                "label": "Premier bain dans l'atoll",
+                "detail": "Découverte de l'eau turquoise translucide face à la terrasse du restaurant."
+            }
+        ],
         "hasFlight": true,
         "flight": {
             "flightNumber": "VT244",
@@ -1014,7 +1196,7 @@ const DAILY_PROGRAM = [
                     "icon": "fa-plane"
                 },
                 {
-                    "label": "Suivi Flotte Air Tahiti (Flightradar24)",
+                    "label": "Radar Flotte Air Tahiti (Flightradar24)",
                     "url": "https://www.flightradar24.com/data/airlines/vt-vta",
                     "icon": "fa-satellite-dish"
                 }
@@ -1025,33 +1207,97 @@ const DAILY_PROGRAM = [
         "dayNumber": 9,
         "date": "Samedi 17 Octobre 2026",
         "island": "Rangiroa",
-        "type": "Faune Marine & Atoll",
         "icon": "🐬",
         "title": "Le Ballet des Dauphins Sauvages de la Passe de Tiputa",
-        "description": "Immersion dans la sérénité totale des Tuamotu. Snorkeling dans 'l'Aquarium' naturel au milieu de milliers de poissons multicolores. En fin d'après-midi, spectacle féerique depuis la passe de Tiputa où une famille de grands dauphins sauvages vient jouer et sauter dans les vagues du courant sortant. Dîner savoureux sous les étoiles.",
+        "story": "Immersion dans la sérénité totale des Tuamotu. Snorkeling dans 'l'Aquarium' naturel au milieu de milliers de poissons multicolores. En fin d'après-midi, spectacle féerique depuis la passe de Tiputa où une famille de grands dauphins sauvages vient jouer et sauter dans les vagues du courant sortant. Dîner savoureux sous les étoiles.",
         "hotel": "Raira Lagon (Bungalow Jardin - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "hotel",
+                "label": "Raira Lagon en demi-pension",
+                "detail": "Petits-déjeuners et dîners cuisinés inclus au bord de l'eau"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "wildlife",
+                "label": "Les Dauphins de Tiputa",
+                "detail": "Spectacle libre en fin d'après-midi au coucher du soleil à l'embouchure de la passe."
+            },
+            {
+                "type": "snorkeling",
+                "label": "Snorkeling à l'Aquarium",
+                "detail": "Bassin abrité idéal pour initier les enfants aux poissons tropicaux."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 10,
         "date": "Dimanche 18 Octobre 2026",
         "island": "Rangiroa",
-        "type": "Excursion Joyau Naturel",
         "icon": "💎",
         "title": "L'Émerveillement Absolu du Lagon Bleu & Sables Roses",
-        "description": "Une journée gravée à jamais ! Traversée du grand lagon vers le mythique 'Lagon Bleu', une piscine naturelle de saphir entourée de motu aux sables roses. Baignade avec les bébés requins inoffensifs qui glissent sur le sable blanc sous les rires des jumeaux. Pique-nique de poisson grillé préparé sur les braises de coco par nos guides paumotu.",
+        "story": "Une journée gravée à jamais ! Traversée du grand lagon vers le mythique 'Lagon Bleu', une piscine naturelle de saphir entourée de motu aux sables roses. Baignade avec les bébés requins inoffensifs qui glissent sur le sable blanc sous les rires des jumeaux. Pique-nique de poisson grillé préparé sur les braises de coco par nos guides paumotu.",
         "hotel": "Raira Lagon (Bungalow Jardin - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "excursion",
+                "label": "Journée complète au Lagon Bleu (date confirmée)",
+                "detail": "Traversée en bateau vers le motu aux sables roses"
+            },
+            {
+                "type": "activity",
+                "label": "Baignade avec les bébés requins inoffensifs",
+                "detail": "Eau cristalline peu profonde au bord du motu"
+            },
+            {
+                "type": "meal",
+                "label": "Pique-nique paumotu inclus",
+                "detail": "Poisson grillé au feu de coco et pain traditionnel"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "relax",
+                "label": "Soirée étoilée",
+                "detail": "Observation de la Voie Lactée éclatante depuis le ponton du lodge."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 11,
         "date": "Lundi 19 Octobre 2026",
         "island": "Rangiroa ➔ Raiatea",
-        "type": "Vol Inter-Îles Air Tahiti",
         "icon": "✈️",
         "title": "Cap sur Raiatea, l'Île Sacrée des Îles Sous-le-Vent",
-        "description": "Dernier bain matinal dans le lagon de Rangiroa. Envol à bord du vol Air Tahiti VT471 vers Raiatea (avec escale à Tahiti). Arrivée dans l'après-midi sur cette île majestueuse et montagneuse, berceau historique du peuple ma'ohi. Installation dans notre Bungalow Famille vue mer au Raiatea Lodge Hotel au milieu d'un parc tropical fleuri.",
+        "story": "Dernier bain matinal dans le lagon de Rangiroa. Envol à bord du vol Air Tahiti VT471 vers Raiatea (avec escale à Tahiti). Arrivée dans l'après-midi sur cette île majestueuse et montagneuse, berceau historique du peuple ma'ohi. Installation dans notre Bungalow Famille vue mer au Raiatea Lodge Hotel au milieu d'un parc tropical fleuri.",
         "hotel": "Raiatea Lodge Hotel 3* (Bungalow Famille Vue Mer - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "flight",
+                "label": "Vol Air Tahiti VT471 (Rangiroa ➔ Raiatea)",
+                "detail": "Départ matin ➔ Arrivée après-midi (via PPT, durée 2h30)"
+            },
+            {
+                "type": "transfer",
+                "label": "Accueil à Uturoa & Transfert",
+                "detail": "Navette vers le Raiatea Lodge Hotel"
+            },
+            {
+                "type": "hotel",
+                "label": "Raiatea Lodge Hotel 3*",
+                "detail": "Bungalow Famille Vue Mer • Demi-pension incluse"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "relax",
+                "label": "Détente au bord de la piscine",
+                "detail": "Installation des affaires dans le grand bungalow et baignade dans la piscine du lodge."
+            }
+        ],
         "hasFlight": true,
         "flight": {
             "flightNumber": "VT471",
@@ -1065,7 +1311,7 @@ const DAILY_PROGRAM = [
                     "icon": "fa-plane"
                 },
                 {
-                    "label": "Suivi Flotte Air Tahiti (Flightradar24)",
+                    "label": "Radar Flotte Air Tahiti (Flightradar24)",
                     "url": "https://www.flightradar24.com/data/airlines/vt-vta",
                     "icon": "fa-satellite-dish"
                 }
@@ -1076,72 +1322,195 @@ const DAILY_PROGRAM = [
         "dayNumber": 12,
         "date": "Mardi 20 Octobre 2026",
         "island": "Raiatea",
-        "type": "Culture Ma'ohi & Rivière",
         "icon": "🗿",
         "title": "Pirogue sur la Faaroa & Berceau de Taputapuatea (UNESCO)",
-        "description": "Journée riche en émotions et en découvertes. Remontée en pirogue traditionnelle de la rivière Faaroa, l'unique cours d'eau navigable de Polynésie, serpentant sous une voûte de bambous et de fougères géantes. Visite du marae international de Taputapuatea, sanctuaire sacré classé par l'UNESCO d'où s'élancèrent les grands navigateurs polynésiens vers tout le Pacifique.",
+        "story": "Journée riche en émotions et en découvertes. Remontée en pirogue traditionnelle de la rivière Faaroa, l'unique cours d'eau navigable de Polynésie, serpentant sous une voûte de bambous et de fougères géantes. Visite du marae international de Taputapuatea, sanctuaire sacré classé par l'UNESCO d'où s'élancèrent les grands navigateurs polynésiens vers tout le Pacifique.",
         "hotel": "Raiatea Lodge Hotel 3* (Bungalow Famille Vue Mer - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "excursion",
+                "label": "Remontée en pirogue de la rivière Faaroa",
+                "detail": "Navigation douce au cœur de la jungle luxuriante"
+            },
+            {
+                "type": "culture",
+                "label": "Visite guidée du Marae Taputapuatea (UNESCO)",
+                "detail": "Sanctuaire sacré millénaire des grands navigateurs ma'ohi"
+            },
+            {
+                "type": "meal",
+                "label": "Déjeuner traditionnel inclus",
+                "detail": "Repas préparé par nos guides locaux"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "culture",
+                "label": "Contes polynésiens",
+                "detail": "Partage avec les jumeaux des légendes sur la création des îles."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 13,
         "date": "Mercredi 21 Octobre 2026",
         "island": "Raiatea",
-        "type": "Montagnes & Légendes",
         "icon": "🌸",
         "title": "Plateau du Mont Temehani & La Fleur Mystique Tiare Apetahi",
-        "description": "Balade sur les contreforts verdoyants du mont Temehani, à la découverte des légendes de l'île et de la célèbre Tiare Apetahi, fleur à cinq pétales unique au monde qui ne s'épanouit que sur cette montagne sacrée. Après-midi kayak et baignade face au motu Miri Miri avec vue sur les silhouettes de Bora Bora au loin.",
+        "story": "Balade sur les contreforts verdoyants du mont Temehani, à la découverte des légendes de l'île et de la célèbre Tiare Apetahi, fleur à cinq pétales unique au monde qui ne s'épanouit que sur cette montagne sacrée. Après-midi kayak et baignade face au motu Miri Miri avec vue sur les silhouettes de Bora Bora au loin.",
         "hotel": "Raiatea Lodge Hotel 3* (Bungalow Famille Vue Mer - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "hotel",
+                "label": "Raiatea Lodge en demi-pension",
+                "detail": "Dîner gastronomique inclus au restaurant du lodge"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "walk",
+                "label": "Balade nature au Mont Temehani",
+                "detail": "Sentier accessible avec les enfants à la découverte de la flore endémique."
+            },
+            {
+                "type": "water",
+                "label": "Kayak & Paddle au lodge",
+                "detail": "Navigation libre sur le lagon calme face au motu Miri Miri."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 14,
         "date": "Jeudi 22 Octobre 2026",
         "island": "Raiatea",
-        "type": "Marché Local & Détente",
         "icon": "🥥",
         "title": "Marché Coloré d'Uturoa & Douceur de Vivre au Lodge",
-        "description": "Visite du marché matinal d'Uturoa : étals de mangues juteuses, bananes douces, bouquets de fleurs tropicales et vanneries en pandanus tressées par les mamans de l'île. Après-midi détente autour de la piscine du lodge, sieste à l'ombre et dégustation de cocktails de fruits frais au coucher du soleil.",
+        "story": "Visite du marché matinal d'Uturoa : étals de mangues juteuses, bananes douces, bouquets de fleurs tropicales et vanneries en pandanus tressées par les mamans de l'île. Après-midi détente autour de la piscine du lodge, sieste à l'ombre et dégustation de cocktails de fruits frais au coucher du soleil.",
         "hotel": "Raiatea Lodge Hotel 3* (Bungalow Famille Vue Mer - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "hotel",
+                "label": "Raiatea Lodge en demi-pension",
+                "detail": "Dîner et nuitée au lodge"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "market",
+                "label": "Marché d'Uturoa",
+                "detail": "Immersion authentique dans la vie locale et dégustation de fruits exotiques."
+            },
+            {
+                "type": "relax",
+                "label": "Après-midi piscine & sieste",
+                "detail": "Repos au lodge avant la traversée vers Taha'a le lendemain."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 15,
         "date": "Vendredi 23 Octobre 2026",
         "island": "Raiatea ➔ Taha'a",
-        "type": "Traversée Lagon vers l'Île Vanille",
         "icon": "⛵",
         "title": "Navigation vers Taha'a & Accueil à la Pension Anahata",
-        "description": "Court transfert en bateau de 30 minutes sur les eaux cristallines du lagon partagé entre Raiatea et Taha'a. Arrivée sur 'l'Île Vanille', réputée pour sa douceur de vivre et ses senteurs envoûtantes. Installation dans notre Bungalow Plage à la Pension Anahata, les pieds dans l'eau calme du lagon face à un récif préservé.",
+        "story": "Court transfert en bateau de 30 minutes sur les eaux cristallines du lagon partagé entre Raiatea et Taha'a. Arrivée sur 'l'Île Vanille', réputée pour sa douceur de vivre et ses senteurs envoûtantes. Installation dans notre Bungalow Plage à la Pension Anahata, les pieds dans l'eau calme du lagon face à un récif préservé.",
         "hotel": "Pension Anahata (Bungalow Plage - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "transfer",
+                "label": "Navette bateau lagon Raiatea ➔ Taha'a",
+                "detail": "Traversée de 30 minutes sur les eaux turquoise du lagon partagé"
+            },
+            {
+                "type": "hotel",
+                "label": "Pension Anahata",
+                "detail": "Bungalow Plage les pieds dans le sable • Demi-pension incluse"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "relax",
+                "label": "Baignade au crépuscule",
+                "detail": "Eau tiède et calme au pied du bungalow, parfum doux de vanille dans les alizés."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 16,
         "date": "Samedi 24 Octobre 2026",
         "island": "Taha'a",
-        "type": "Jardin de Corail & Vanille",
         "icon": "🤿",
         "title": "Le Fabuleux Jardin de Corail du Motu Tautau & Vanilleraie",
-        "description": "L'un des plus beaux snorkeling au monde : dérive douce portée par le courant entre les deux motu au-dessus de massifs de corail multicolores intacts et de bancs de poissons-papillons. Visite passionnante d'une plantation familiale de vanille pour découvrir le secret de la pollinisation manuelle des gousses, suivie d'une ferme perlière artisanale.",
+        "story": "L'un des plus beaux snorkeling au monde : dérive douce portée par le courant entre les deux motu au-dessus de massifs de corail multicolores intacts et de bancs de poissons-papillons. Visite passionnante d'une plantation familiale de vanille pour découvrir le secret de la pollinisation manuelle des gousses, suivie d'une ferme perlière artisanale.",
         "hotel": "Pension Anahata (Bungalow Plage - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "excursion",
+                "label": "Jardin de Corail du Motu Tautau",
+                "detail": "Snorkeling dérivant magique organisé avec la Pension Anahata"
+            },
+            {
+                "type": "culture",
+                "label": "Visite d'une vanilleraie traditionnelle",
+                "detail": "Secrets du mariage manuel de la vanille de Taha'a (AOP)"
+            },
+            {
+                "type": "activity",
+                "label": "Découverte d'une ferme perlière",
+                "detail": "Greffe et récolte de la perle noire de culture"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "taste",
+                "label": "Dégustation vanillée",
+                "detail": "Glaces et douceurs à la vanille bourbon préparées sur place."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 17,
         "date": "Dimanche 25 Octobre 2026",
         "island": "Taha'a ➔ Raiatea ➔ Maupiti",
-        "type": "Vol Air Tahiti vers l'Île Préservée",
         "icon": "✈️",
         "title": "L'Arrivée à Maupiti, le Paradis Intact du Pacifique",
-        "description": "Navette bateau vers Raiatea puis envol sur le vol Air Tahiti VT279 vers Maupiti. Escale visuelle magique au-dessus du lagon de Bora Bora et de son mont Otemanu. Atterrissage grandiose sur la piste étroite posée sur un motu de Maupiti ! Accueil chaleureux avec colliers de fleurs et transfert en pirogue à la Pension Papahani sur le motu Tiapaa.",
+        "story": "Navette bateau vers Raiatea puis envol sur le vol Air Tahiti VT279 vers Maupiti. Escale visuelle magique au-dessus du lagon de Bora Bora et de son mont Otemanu. Atterrissage grandiose sur la piste étroite posée sur un motu de Maupiti ! Accueil chaleureux avec colliers de fleurs et transfert en pirogue à la Pension Papahani sur le motu Tiapaa.",
         "hotel": "Pension Papahani (Bungalow Jardin sur Motu - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "transfer",
+                "label": "Bateau navette Taha'a ➔ Raiatea",
+                "detail": "Transfert matinal vers l'aéroport d'Uturoa"
+            },
+            {
+                "type": "flight",
+                "label": "Vol Air Tahiti VT279 (Raiatea ➔ Maupiti via BOB)",
+                "detail": "Survol panoramique féerique du mont Otemanu de Bora Bora"
+            },
+            {
+                "type": "hotel",
+                "label": "Pension Papahani (Motu Tiapaa)",
+                "detail": "Bungalow sur motu sans voiture • Demi-pension familiale"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "relax",
+                "label": "Déconnexion totale",
+                "detail": "Découverte du motu sauvage, rythme paisible et pieds nus dans le sable fin."
+            }
+        ],
         "hasFlight": true,
         "flight": {
             "flightNumber": "VT279",
             "airline": "Air Tahiti",
             "route": "Raiatea (RFP) ➔ Maupiti (MAU) via BOB",
-            "times": "Matinée ➔ Midi (Survol panoramique de Bora Bora)",
+            "times": "Matinée ➔ Midi (Survol de Bora Bora)",
             "links": [
                 {
                     "label": "Site Officiel Air Tahiti",
@@ -1149,7 +1518,7 @@ const DAILY_PROGRAM = [
                     "icon": "fa-plane"
                 },
                 {
-                    "label": "Suivi Flotte Air Tahiti (Flightradar24)",
+                    "label": "Radar Flotte Air Tahiti (Flightradar24)",
                     "url": "https://www.flightradar24.com/data/airlines/vt-vta",
                     "icon": "fa-satellite-dish"
                 }
@@ -1160,33 +1529,87 @@ const DAILY_PROGRAM = [
         "dayNumber": 18,
         "date": "Lundi 26 Octobre 2026",
         "island": "Maupiti",
-        "type": "Rencontre Sous-Marine Inoubliable",
         "icon": "🤿",
         "title": "Nage Féerique avec les Raies Manta Géantes",
-        "description": "Départ matinal en pirogue vers le site de nettoyage des raies manta au cœur du lagon de Maupiti. Baignade silencieuse au milieu de ces géantes majestueuses de 3 à 4 mètres d'envergure qui planent avec une grâce surnaturelle à quelques mètres de nous. Moment de grâce absolue pour la famille. Déjeuner local les pieds dans l'eau.",
+        "story": "Départ matinal en pirogue vers le site de nettoyage des raies manta au cœur du lagon de Maupiti. Baignade silencieuse au milieu de ces géantes majestueuses de 3 à 4 mètres d'envergure qui planent avec une grâce surnaturelle à quelques mètres de nous. Moment de grâce absolue pour la famille. Déjeuner local les pieds dans l'eau.",
         "hotel": "Pension Papahani (Bungalow Jardin sur Motu - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "excursion",
+                "label": "Sortie Raies Manta au cœur du lagon",
+                "detail": "Organisée avec la Pension Papahani sur la station de nettoyage des raies"
+            },
+            {
+                "type": "meal",
+                "label": "Déjeuner insulaire à la pension",
+                "detail": "Pain coco cuit au feu de bois et poissons du lagon"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "snorkeling",
+                "label": "Observation respectueuse",
+                "detail": "Les jumeaux nagent au-dessus des raies manta avec Papa et Maman."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 19,
         "date": "Mardi 27 Octobre 2026",
         "island": "Maupiti",
-        "type": "Vélo & Lagon Turquoise",
         "icon": "🚲",
         "title": "Tour de l'Île en Vélo & Plage de Rêve de Tereia",
-        "description": "Traversée vers l'île principale de Maupiti (où aucune voiture ne circule). Balade tranquille en vélo le long des chemins fleuris, découverte des pétroglyphes de Haranae et baignade à la légendaire plage de Tereia, où l'on traverse le lagon à pied avec de l'eau tiède jusqu'à la taille pour rejoindre le motu d'en face avec les enfants.",
+        "story": "Traversée vers l'île principale de Maupiti (où aucune voiture ne circule). Balade tranquille en vélo le long des chemins fleuris, découverte des pétroglyphes de Haranae et baignade à la légendaire plage de Tereia, où l'on traverse le lagon à pied avec de l'eau tiède jusqu'à la taille pour rejoindre le motu d'en face avec les enfants.",
         "hotel": "Pension Papahani (Bungalow Jardin sur Motu - Demi-pension)",
+        "confirmed": [
+            {
+                "type": "hotel",
+                "label": "Pension Papahani en demi-pension",
+                "detail": "Dîner convivial et nuitée sur le motu"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "bike",
+                "label": "Tour de Maupiti en vélo",
+                "detail": "Balade sans aucune voiture à travers les villages fleuris de l'île principale."
+            },
+            {
+                "type": "beach",
+                "label": "Plage de Tereia & Traversée à pied",
+                "detail": "Traversée féerique du lagon à pied avec les enfants jusqu'au motu d'en face."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 20,
         "date": "Mercredi 28 Octobre 2026",
         "island": "Maupiti ➔ Tahiti",
-        "type": "Vol Retour vers l'Île Capitale",
         "icon": "✈️",
         "title": "Derniers Regards sur Maupiti & Retour à Tahiti",
-        "description": "Dernière baignade matinale sur notre motu de Maupiti. En fin d'après-midi, envol direct avec Air Tahiti (vol VT268) vers Tahiti Faa'a. Dernier survol des îles Sous-le-Vent illuminées par le soleil couchant. Transfert et installation au Studio Reva Tahiti pour les deux dernières nuits de détente avant le voyage retour.",
+        "story": "Dernière baignade matinale sur notre motu de Maupiti. En fin d'après-midi, envol direct avec Air Tahiti (vol VT268) vers Tahiti Faa'a. Dernier survol des îles Sous-le-Vent illuminées par le soleil couchant. Transfert et installation au Studio Reva Tahiti pour les deux dernières nuits de détente avant le voyage retour.",
         "hotel": "Résidence Reva Tahiti 2* (Studio Reva)",
+        "confirmed": [
+            {
+                "type": "flight",
+                "label": "Vol Air Tahiti VT268 (Maupiti ➔ Tahiti Faa'a)",
+                "detail": "Départ 16h40 • Vol direct 55 min • Vue sur le coucher de soleil"
+            },
+            {
+                "type": "hotel",
+                "label": "Résidence Reva Tahiti 2*",
+                "detail": "Studio Reva tout équipé • Petits-déjeuners inclus"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "relax",
+                "label": "Derniers instants sur le motu",
+                "detail": "Ramassage des coquillages avec bébé avant le départ."
+            }
+        ],
         "hasFlight": true,
         "flight": {
             "flightNumber": "VT268",
@@ -1200,7 +1623,7 @@ const DAILY_PROGRAM = [
                     "icon": "fa-plane"
                 },
                 {
-                    "label": "Suivi Flotte Air Tahiti (Flightradar24)",
+                    "label": "Radar Flotte Air Tahiti (Flightradar24)",
                     "url": "https://www.flightradar24.com/data/airlines/vt-vta",
                     "icon": "fa-satellite-dish"
                 }
@@ -1211,22 +1634,63 @@ const DAILY_PROGRAM = [
         "dayNumber": 21,
         "date": "Jeudi 29 Octobre 2026",
         "island": "Tahiti",
-        "type": "Artisanat, Perles & Roulottes",
         "icon": "🛍️",
         "title": "Le Grand Marché de Papeete & Soirée aux Roulottes",
-        "description": "Matinée au marché historique de Papeete : emplettes de souvenirs artisanaux, huiles de monoï traditionnelles à la fleur de tiaré, paréos peints à la main et perles noires de culture gravées. En soirée, rendez-vous incontournable sur la place Vaiete pour dîner aux fameuses roulottes polynésiennes dans une ambiance festive et populaire.",
+        "story": "Matinée au marché historique de Papeete : emplettes de souvenirs artisanaux, huiles de monoï traditionnelles à la fleur de tiaré, paréos peints à la main et perles noires de culture gravées. En soirée, rendez-vous incontournable sur la place Vaiete pour dîner aux fameuses roulottes polynésiennes dans une ambiance festive et populaire.",
         "hotel": "Résidence Reva Tahiti 2* (Studio Reva)",
+        "confirmed": [
+            {
+                "type": "hotel",
+                "label": "Résidence Reva Tahiti",
+                "detail": "Studio Reva • Nuitée à Papeete"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "market",
+                "label": "Le Marché Municipal de Papeete",
+                "detail": "Artisanat, monoï authentique, perles noires et vanille à rapporter aux proches."
+            },
+            {
+                "type": "food",
+                "label": "Dîner aux Roulottes de la Place Vaiete",
+                "detail": "Soirée populaire et conviviale : crêpes, poissons grillés et ambiance locale."
+            }
+        ],
         "hasFlight": false
     },
     {
         "dayNumber": 22,
         "date": "Vendredi 30 Octobre 2026",
         "island": "Tahiti & Vol Retour International",
-        "type": "Tour de l'Île & Décollage TN8",
         "icon": "✈️",
         "title": "Cascades de Faarumai, Trou du Souffleur & Décollage TN8",
-        "description": "Tour complet de l'île de Tahiti Nui en voiture familiale : arrêt à la pointe Vénus, découverte du geyser maritime du trou du souffleur d'Arahoho et marche jusqu'aux chutes d'eau de Faarumai. Dernier coucher de soleil au bord du lagon. À 21h00, arrivée à l'aéroport de Faa'a, remise des colliers de coquillages d'au revoir. À 23h45, décollage du vol TN8 vers Paris CDG via Los Angeles.",
+        "story": "Tour complet de l'île de Tahiti Nui en voiture familiale : arrêt à la pointe Vénus, découverte du geyser maritime du trou du souffleur d'Arahoho et marche jusqu'aux chutes d'eau de Faarumai. Dernier coucher de soleil au bord du lagon. À 21h00, arrivée à l'aéroport de Faa'a, remise des colliers de coquillages d'au revoir. À 23h45, décollage du vol TN8 vers Paris CDG via Los Angeles.",
         "hotel": "Nuit à bord du Boeing 787-9 Dreamliner Air Tahiti Nui (Vol TN8)",
+        "confirmed": [
+            {
+                "type": "rental",
+                "label": "Voiture de location mise à disposition (avec siège bébé)",
+                "detail": "Tour complet de Tahiti Nui en autonomie jusqu'au départ le soir"
+            },
+            {
+                "type": "flight",
+                "label": "Vol Retour International Air Tahiti Nui TN8",
+                "detail": "Tahiti Faa'a ➔ Paris CDG via LAX (23h45 ➔ 09h05 J+2)"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "nature",
+                "label": "Pointe Vénus & Trou du Souffleur d'Arahoho",
+                "detail": "Plage de sable noir historique et geyser d'eau de mer jaillissant de la roche."
+            },
+            {
+                "type": "nature",
+                "label": "Les Cascades de Faarumai",
+                "detail": "Courte marche au cœur de la forêt tropicale jusqu'aux cascades."
+            }
+        ],
         "hasFlight": true,
         "flight": {
             "flightNumber": "TN8",
@@ -1243,11 +1707,6 @@ const DAILY_PROGRAM = [
                     "label": "Flightradar24 (TN8)",
                     "url": "https://www.flightradar24.com/data/flights/tn8",
                     "icon": "fa-plane"
-                },
-                {
-                    "label": "Paris Aéroport CDG",
-                    "url": "https://www.parisaeroport.fr/passagers/vols-et-compagnies",
-                    "icon": "fa-building"
                 }
             ]
         }
@@ -1256,11 +1715,24 @@ const DAILY_PROGRAM = [
         "dayNumber": 23,
         "date": "Samedi 31 Octobre 2026",
         "island": "En Vol (Pacifique & USA)",
-        "type": "Traversée Aérienne du Pacifique",
         "icon": "🌍",
         "title": "La Traversée du Pacifique & Escale à Los Angeles",
-        "description": "Journée de voyage au-dessus de l'immensité du Pacifique. Divertissements à bord pour les enfants et repos des parents. Escale technique à Los Angeles (LAX) puis poursuite du vol de nuit vers l'Europe.",
+        "story": "Journée de voyage au-dessus de l'immensité du Pacifique. Divertissements à bord pour les enfants et repos des parents. Escale technique à Los Angeles (LAX) puis poursuite du vol de nuit vers l'Europe.",
         "hotel": "À bord du vol TN8 (Boeing 787-9 Dreamliner)",
+        "confirmed": [
+            {
+                "type": "flight",
+                "label": "Vol International TN8 en cours",
+                "detail": "Traversée du Pacifique ➔ Escale LAX ➔ Traversée Atlantique"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "memory",
+                "label": "Tri des photos & Souvenirs",
+                "detail": "Remémoration en famille des moments forts vécus sur les 6 îles."
+            }
+        ],
         "hasFlight": true,
         "flight": {
             "flightNumber": "TN8",
@@ -1280,11 +1752,24 @@ const DAILY_PROGRAM = [
         "dayNumber": 24,
         "date": "Dimanche 01 Novembre 2026",
         "island": "Paris CDG ➔ Maison",
-        "type": "Retour à la Maison",
         "icon": "🌟",
         "title": "Atterrissage à Paris & Des Souvenirs pour Toute la Vie !",
-        "description": "À 09h05, atterrissage du Dreamliner sur la piste de Paris Roissy CDG. Récupération des bagages et retour à la maison la tête remplie d'étoiles, les cœurs imprégnés de la douceur du Mana et des milliers de photos et sourires inoubliables. Māuruuru roa la Polynésie !",
+        "story": "À 09h05, atterrissage du Dreamliner sur la piste de Paris Roissy CDG. Récupération des bagages et retour à la maison la tête remplie d'étoiles, les cœurs imprégnés de la douceur du Mana et des milliers de photos et sourires inoubliables. Māuruuru roa la Polynésie !",
         "hotel": "De retour chez nous",
+        "confirmed": [
+            {
+                "type": "flight",
+                "label": "Atterrissage à Paris CDG à 09h05",
+                "detail": "Récupération des bagages & du véhicule au parking"
+            }
+        ],
+        "suggestions": [
+            {
+                "type": "home",
+                "label": "Retrouvailles & Récits",
+                "detail": "Partage de nos récits et de nos photos avec toute la famille !"
+            }
+        ],
         "hasFlight": false
     }
 ];

@@ -332,45 +332,51 @@ function renderMainTimeline() {
 }
 
 // -----------------------------------------------------------------------------
-// 7. VUE DÉCOUPÉE JOUR PAR JOUR (24 JOURNÉES COMPLÈTES AVEC LIENS DES VOLS)
+// 7. VUE DÉCOUPÉE JOUR PAR JOUR (24 JOURNÉES AVEC CONFIRMÉ VS SUGGESTIONS)
 // -----------------------------------------------------------------------------
 function renderDailyTimeline() {
     const container = document.getElementById('timeline-container');
     if (!container || typeof DAILY_PROGRAM === 'undefined') return;
 
-    container.className = "grid grid-cols-1 gap-6 max-w-4xl mx-auto";
+    container.className = "grid grid-cols-1 gap-8 max-w-4xl mx-auto";
 
     container.innerHTML = DAILY_PROGRAM.map((day) => {
         const isFlightDay = day.hasFlight && day.flight;
         const isFerryDay = day.ferry;
 
+        // 1. Encart Vol avec liens de suivi direct
         let flightCardHtml = '';
         if (isFlightDay) {
             const f = day.flight;
             const linksHtml = (f.links || []).map(link => `
-                <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-teal-950 font-bold text-xs transition shadow-sm">
+                <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-teal-950 font-bold text-xs transition-all duration-200 shadow-sm hover:shadow">
                     <i class="fas ${link.icon || 'fa-external-link-alt'}"></i> ${link.label}
                     <i class="fas fa-external-link-alt text-[9px] ml-0.5 opacity-70"></i>
                 </a>
             `).join('');
 
             flightCardHtml = `
-                <div class="mt-4 p-4 rounded-2xl bg-gradient-to-r from-teal-950 to-teal-900 text-white border border-teal-800 shadow-md">
-                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-lg bg-amber-400 text-teal-950 flex items-center justify-center font-bold text-xs shadow-sm">
+                <div class="mt-5 p-5 rounded-2xl bg-gradient-to-r from-teal-950 via-teal-900 to-teal-950 text-white border border-teal-800 shadow-md">
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-2.5">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-amber-400 text-teal-950 flex items-center justify-center font-bold text-sm shadow-sm">
                                 ✈
                             </span>
-                            <span class="font-bold text-sm text-amber-300">${f.flightNumber}</span>
-                            <span class="text-xs text-teal-200">• ${f.airline}</span>
+                            <div>
+                                <span class="font-extrabold text-sm sm:text-base text-amber-300 tracking-wide">${f.flightNumber}</span>
+                                <span class="text-xs text-teal-200 ml-1 font-medium">• ${f.airline}</span>
+                            </div>
                         </div>
-                        <span class="text-xs text-teal-200 font-medium">${f.times}</span>
+                        <span class="text-xs px-3 py-1 rounded-full bg-teal-800/80 text-teal-100 font-semibold border border-teal-700/60">
+                            <i class="fas fa-clock mr-1 text-amber-300"></i> ${f.times}
+                        </span>
                     </div>
-                    <div class="text-xs text-teal-100 font-semibold mb-3">
-                        <i class="fas fa-plane text-teal-400 mr-1.5"></i> ${f.route}
+                    <div class="text-xs sm:text-sm text-teal-100 font-medium mb-3 flex items-center gap-2">
+                        <i class="fas fa-plane-departure text-teal-400"></i> 
+                        <span>${f.route}</span>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-white/15">
-                        <span class="text-[11px] text-teal-300 font-semibold mr-1">Suivi en direct :</span>
+                    <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-teal-800/80">
+                        <span class="text-[11px] uppercase tracking-wider text-teal-300 font-bold mr-1">Suivi en direct :</span>
                         ${linksHtml}
                     </div>
                 </div>
@@ -378,59 +384,157 @@ function renderDailyTimeline() {
         } else if (isFerryDay) {
             const ferry = day.ferry;
             const linksHtml = (ferry.links || []).map(link => `
-                <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition shadow-sm">
+                <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition shadow-sm">
                     <i class="fas ${link.icon || 'fa-ship'}"></i> ${link.label}
                     <i class="fas fa-external-link-alt text-[9px] ml-0.5 opacity-70"></i>
                 </a>
             `).join('');
 
             flightCardHtml = `
-                <div class="mt-4 p-4 rounded-2xl bg-cyan-50 border border-cyan-200 text-teal-950">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="w-7 h-7 rounded-lg bg-cyan-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                <div class="mt-5 p-5 rounded-2xl bg-cyan-50 border border-cyan-200 text-teal-950 shadow-sm">
+                    <div class="flex items-center gap-2.5 mb-2">
+                        <span class="w-8 h-8 rounded-xl bg-cyan-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
                             ⛴️
                         </span>
-                        <span class="font-bold text-sm text-cyan-900">${ferry.name}</span>
-                        <span class="text-xs text-gray-600">• ${ferry.route}</span>
+                        <div>
+                            <span class="font-extrabold text-sm text-cyan-950">${ferry.name}</span>
+                            <span class="text-xs text-cyan-800 ml-1">• ${ferry.route}</span>
+                        </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-cyan-200/60">
+                    <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-cyan-200/80">
                         ${linksHtml}
                     </div>
                 </div>
             `;
         }
 
+        // 2. Bloc "Planifié fermement / Réservé" (Excursions confirmées, locations, transferts)
+        const confirmedList = day.confirmed || [];
+        let confirmedBlockHtml = '';
+        if (confirmedList.length > 0) {
+            const itemsHtml = confirmedList.map(item => {
+                let badgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
+                let icon = 'fa-check-circle text-emerald-600';
+                if (item.type === 'location') {
+                    badgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
+                    icon = 'fa-car text-emerald-600';
+                } else if (item.type === 'vol' || item.type === 'ferry') {
+                    badgeClass = 'bg-teal-100 text-teal-950 border-teal-300';
+                    icon = 'fa-plane-departure text-teal-700';
+                }
+
+                return `
+                    <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-white/90 border border-emerald-100 shadow-sm hover:border-emerald-300 transition">
+                        <div class="w-7 h-7 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 text-xs shadow-sm mt-0.5">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded-full ${badgeClass} border tracking-wide">
+                                    ${item.type}
+                                </span>
+                                <h4 class="text-xs sm:text-sm font-bold text-teal-950">${item.label}</h4>
+                            </div>
+                            <p class="text-xs text-gray-600 leading-relaxed">${item.detail}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            confirmedBlockHtml = `
+                <div class="mt-5 p-5 rounded-2xl bg-gradient-to-br from-emerald-50/80 via-emerald-50/40 to-teal-50/60 border-2 border-emerald-200/80 shadow-sm">
+                    <div class="flex items-center gap-2 mb-3.5">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-sm">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <h4 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-emerald-950">
+                            Planifié & Réservé fermement
+                        </h4>
+                        <span class="ml-auto text-[11px] font-bold text-emerald-800 bg-emerald-200/70 px-2.5 py-0.5 rounded-full">
+                            ${confirmedList.length} réservé${confirmedList.length > 1 ? 's' : ''}
+                        </span>
+                    </div>
+                    <div class="space-y-2.5">
+                        ${itemsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. Bloc "Suggestions & Temps Libre" (Propositions, découvertes, idées libres)
+        const suggestionsList = day.suggestions || [];
+        let suggestionsBlockHtml = '';
+        if (suggestionsList.length > 0) {
+            const itemsHtml = suggestionsList.map(item => `
+                <li class="flex items-start gap-2.5 text-xs sm:text-sm text-gray-700 leading-relaxed">
+                    <span class="text-amber-500 font-black text-sm leading-none mt-0.5">•</span>
+                    <div>
+                        <strong class="text-teal-950 font-bold">${item.label} :</strong> 
+                        <span class="text-gray-600">${item.detail}</span>
+                    </div>
+                </li>
+            `).join('');
+
+            suggestionsBlockHtml = `
+                <div class="mt-4 p-5 rounded-2xl bg-amber-50/50 border border-amber-200/70">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-lg bg-amber-400 text-teal-950 flex items-center justify-center text-xs shadow-sm">
+                            <i class="fas fa-lightbulb"></i>
+                        </span>
+                        <h4 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-950">
+                            Idées & Suggestions en liberté
+                        </h4>
+                    </div>
+                    <ul class="space-y-2">
+                        ${itemsHtml}
+                    </ul>
+                </div>
+            `;
+        }
+
         return `
-            <article class="bg-white rounded-3xl p-6 sm:p-7 border border-gray-100 shadow-sm hover:shadow-md transition duration-200">
-                <!-- En-tête du jour -->
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="px-3.5 py-1 rounded-full text-xs font-black bg-teal-800 text-white shadow-sm">
+            <article class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+                <!-- Barre d'accentuation haute -->
+                <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-teal-600 via-cyan-500 to-amber-400"></div>
+
+                <!-- En-tête du jour aéré -->
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-gray-100">
+                    <div class="flex items-center gap-2.5">
+                        <span class="px-4 py-1.5 rounded-full text-xs font-black bg-teal-900 text-white shadow-sm tracking-wide">
                             Jour ${day.dayNumber}
                         </span>
-                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                        <span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-teal-50 text-teal-900 border border-teal-200/80 shadow-xs">
                             📍 ${day.island}
                         </span>
                     </div>
-                    <span class="text-xs text-gray-500 font-semibold flex items-center gap-1">
+                    <span class="text-xs sm:text-sm text-gray-500 font-semibold flex items-center gap-1.5">
                         <i class="fas fa-calendar-alt text-teal-600"></i> ${day.date}
                     </span>
                 </div>
 
-                <!-- Titre & Récit du jour -->
-                <h3 class="font-display font-extrabold text-xl sm:text-2xl text-teal-950 mb-2 flex items-center gap-2">
-                    <span>${day.icon}</span> <span>${day.title}</span>
+                <!-- Titre de la journée -->
+                <h3 class="font-display font-black text-xl sm:text-2xl text-teal-950 mb-3 flex items-center gap-2.5">
+                    <span class="text-2xl">${day.icon}</span> <span>${day.title}</span>
                 </h3>
 
-                <p class="text-gray-700 text-sm sm:text-base leading-relaxed mb-4 font-normal">
+                <!-- Récit de la journée avec interligne généreux -->
+                <p class="text-gray-700 text-sm sm:text-base leading-relaxed mb-5 font-normal">
                     ${day.description}
                 </p>
 
                 <!-- Hébergement de la nuit -->
-                <div class="p-3 bg-teal-50/70 rounded-xl border border-teal-100 flex items-center gap-2 text-xs text-teal-950 font-medium">
-                    <i class="fas fa-hotel text-teal-600"></i>
+                <div class="p-3.5 bg-teal-50/60 rounded-2xl border border-teal-100/80 flex items-center gap-2.5 text-xs sm:text-sm text-teal-950 font-medium">
+                    <div class="w-7 h-7 rounded-xl bg-teal-600 text-white flex items-center justify-center text-xs flex-shrink-0">
+                        <i class="fas fa-hotel"></i>
+                    </div>
                     <span><strong>Nuitée :</strong> ${day.hotel}</span>
                 </div>
+
+                <!-- Bloc Confirmé / Réservé (Mise en évidence) -->
+                ${confirmedBlockHtml}
+
+                <!-- Bloc Suggestions & Liberté -->
+                ${suggestionsBlockHtml}
 
                 <!-- Encart Vol si pertinent -->
                 ${flightCardHtml}
