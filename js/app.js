@@ -408,24 +408,24 @@ function renderDailyTimeline() {
             `;
         }
 
-        // 2. Bloc "Planifié fermement / Réservé" (Excursions confirmées, locations, transferts)
+        // 2. Bloc Activités & Moments Clés (excursions, sorties, locations réservées)
         const confirmedList = day.confirmed || [];
         let confirmedBlockHtml = '';
         if (confirmedList.length > 0) {
             const itemsHtml = confirmedList.map(item => {
                 let badgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
                 let icon = 'fa-check-circle text-emerald-600';
-                if (item.type === 'location') {
+                if (item.type === 'location' || item.type === 'rental') {
                     badgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
                     icon = 'fa-car text-emerald-600';
-                } else if (item.type === 'vol' || item.type === 'ferry') {
+                } else if (item.type === 'vol' || item.type === 'flight' || item.type === 'ferry' || item.type === 'transfer') {
                     badgeClass = 'bg-teal-100 text-teal-950 border-teal-300';
-                    icon = 'fa-plane-departure text-teal-700';
+                    icon = 'fa-paper-plane text-teal-700';
                 }
 
                 return `
-                    <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-white/90 border border-emerald-100 shadow-sm hover:border-emerald-300 transition">
-                        <div class="w-7 h-7 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 text-xs shadow-sm mt-0.5">
+                    <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-white/95 border border-emerald-100/90 shadow-xs hover:border-emerald-300 transition">
+                        <div class="w-7 h-7 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 text-xs shadow-xs mt-0.5">
                             <i class="fas ${icon}"></i>
                         </div>
                         <div class="flex-1 min-w-0">
@@ -442,16 +442,16 @@ function renderDailyTimeline() {
             }).join('');
 
             confirmedBlockHtml = `
-                <div class="mt-5 p-5 rounded-2xl bg-gradient-to-br from-emerald-50/80 via-emerald-50/40 to-teal-50/60 border-2 border-emerald-200/80 shadow-sm">
-                    <div class="flex items-center gap-2 mb-3.5">
-                        <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-sm">
-                            <i class="fas fa-lock"></i>
+                <div class="mt-5 p-5 rounded-2xl bg-gradient-to-br from-emerald-50/70 via-emerald-50/30 to-teal-50/50 border border-emerald-200/70 shadow-xs">
+                    <div class="flex items-center gap-2.5 mb-3.5">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-xs">
+                            <i class="fas fa-compass"></i>
                         </span>
                         <h4 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-emerald-950">
-                            Planifié & Réservé fermement
+                            Au programme de notre journée
                         </h4>
-                        <span class="ml-auto text-[11px] font-bold text-emerald-800 bg-emerald-200/70 px-2.5 py-0.5 rounded-full">
-                            ${confirmedList.length} réservé${confirmedList.length > 1 ? 's' : ''}
+                        <span class="ml-auto text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200/80">
+                            ${confirmedList.length} temps fort${confirmedList.length > 1 ? 's' : ''}
                         </span>
                     </div>
                     <div class="space-y-2.5">
@@ -461,7 +461,7 @@ function renderDailyTimeline() {
             `;
         }
 
-        // 3. Bloc "Suggestions & Temps Libre" (Propositions, découvertes, idées libres)
+        // 3. Bloc Moments libres & Envies du jour
         const suggestionsList = day.suggestions || [];
         let suggestionsBlockHtml = '';
         if (suggestionsList.length > 0) {
@@ -476,13 +476,13 @@ function renderDailyTimeline() {
             `).join('');
 
             suggestionsBlockHtml = `
-                <div class="mt-4 p-5 rounded-2xl bg-amber-50/50 border border-amber-200/70">
+                <div class="mt-4 p-5 rounded-2xl bg-amber-50/40 border border-amber-200/60">
                     <div class="flex items-center gap-2 mb-3">
-                        <span class="w-6 h-6 rounded-lg bg-amber-400 text-teal-950 flex items-center justify-center text-xs shadow-sm">
-                            <i class="fas fa-lightbulb"></i>
+                        <span class="w-6 h-6 rounded-lg bg-amber-400 text-teal-950 flex items-center justify-center text-xs shadow-xs">
+                            <i class="fas fa-umbrella-beach"></i>
                         </span>
                         <h4 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-950">
-                            Idées & Suggestions en liberté
+                            Envies libres & Découvertes
                         </h4>
                     </div>
                     <ul class="space-y-2">
@@ -491,6 +491,8 @@ function renderDailyTimeline() {
                 </div>
             `;
         }
+
+        const dayStoryText = day.story || day.description || '';
 
         return `
             <article class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden">
@@ -517,23 +519,25 @@ function renderDailyTimeline() {
                     <span class="text-2xl">${day.icon}</span> <span>${day.title}</span>
                 </h3>
 
-                <!-- Récit de la journée avec interligne généreux -->
-                <p class="text-gray-700 text-sm sm:text-base leading-relaxed mb-5 font-normal">
-                    ${day.description}
-                </p>
+                <!-- Récit de la journée pour la famille et les proches -->
+                ${dayStoryText ? `
+                    <p class="text-gray-700 text-sm sm:text-base leading-relaxed mb-5 font-normal">
+                        ${dayStoryText}
+                    </p>
+                ` : ''}
 
                 <!-- Hébergement de la nuit -->
                 <div class="p-3.5 bg-teal-50/60 rounded-2xl border border-teal-100/80 flex items-center gap-2.5 text-xs sm:text-sm text-teal-950 font-medium">
                     <div class="w-7 h-7 rounded-xl bg-teal-600 text-white flex items-center justify-center text-xs flex-shrink-0">
                         <i class="fas fa-hotel"></i>
                     </div>
-                    <span><strong>Nuitée :</strong> ${day.hotel}</span>
+                    <span><strong>Où nous dormons ce soir :</strong> ${day.hotel}</span>
                 </div>
 
-                <!-- Bloc Confirmé / Réservé (Mise en évidence) -->
+                <!-- Bloc Confirmé / Au programme -->
                 ${confirmedBlockHtml}
 
-                <!-- Bloc Suggestions & Liberté -->
+                <!-- Bloc Envies libres & Découvertes -->
                 ${suggestionsBlockHtml}
 
                 <!-- Encart Vol si pertinent -->
