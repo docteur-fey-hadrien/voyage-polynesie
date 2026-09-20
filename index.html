@@ -115,30 +115,42 @@
                 Bienvenue sur notre carnet de bord interactif ! Suivez nos découvertes d'atoll en lagon à travers le Pacifique Sud.
             </p>
 
-            <!-- Compte à Rebours Dynamique Animé (Cartes Glassmorphism) -->
+            <!-- Compte à Rebours Dynamique Animé (Cartes Glassmorphism & Suivi En Direct) -->
             <div class="max-w-2xl mx-auto my-8">
                 <div class="text-xs uppercase tracking-widest text-teal-200 font-semibold mb-3 flex items-center justify-center gap-2">
-                    <span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                    <span id="countdown-indicator" class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
                     <span id="countdown-title">Décollage dans</span>
                 </div>
                 <div class="grid grid-cols-4 gap-2 sm:gap-4 text-center">
                     <div class="bg-white/15 backdrop-blur-md border border-white/30 rounded-2xl p-2.5 sm:p-4 shadow-lg transform hover:scale-105 transition duration-300">
                         <span id="count-days" class="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold text-white block">--</span>
-                        <span class="text-[10px] sm:text-xs text-teal-100 uppercase tracking-wider font-semibold">Jours</span>
+                        <span id="count-days-label" class="text-[10px] sm:text-xs text-teal-100 uppercase tracking-wider font-semibold">Jours</span>
                     </div>
                     <div class="bg-white/15 backdrop-blur-md border border-white/30 rounded-2xl p-2.5 sm:p-4 shadow-lg transform hover:scale-105 transition duration-300">
                         <span id="count-hours" class="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold text-white block">--</span>
-                        <span class="text-[10px] sm:text-xs text-teal-100 uppercase tracking-wider font-semibold">Heures</span>
+                        <span id="count-hours-label" class="text-[10px] sm:text-xs text-teal-100 uppercase tracking-wider font-semibold">Heures</span>
                     </div>
                     <div class="bg-white/15 backdrop-blur-md border border-white/30 rounded-2xl p-2.5 sm:p-4 shadow-lg transform hover:scale-105 transition duration-300">
                         <span id="count-minutes" class="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold text-white block">--</span>
-                        <span class="text-[10px] sm:text-xs text-teal-100 uppercase tracking-wider font-semibold">Minutes</span>
+                        <span id="count-minutes-label" class="text-[10px] sm:text-xs text-teal-100 uppercase tracking-wider font-semibold">Minutes</span>
                     </div>
                     <div class="bg-white/15 backdrop-blur-md border border-white/30 rounded-2xl p-2.5 sm:p-4 shadow-lg transform hover:scale-105 transition duration-300">
                         <span id="count-seconds" class="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold text-amber-300 block">--</span>
-                        <span class="text-[10px] sm:text-xs text-teal-100 uppercase tracking-wider font-semibold">Secondes</span>
+                        <span id="count-seconds-label" class="text-[10px] sm:text-xs text-teal-100 uppercase tracking-wider font-semibold">Secondes</span>
                     </div>
                 </div>
+
+                <!-- Barre de Progression Dynamique (Visible pendant et après le voyage) -->
+                <div id="trip-progress-container" class="hidden mt-4 max-w-md mx-auto bg-black/25 backdrop-blur-md rounded-full p-1 border border-white/20">
+                    <div class="flex items-center justify-between text-[11px] font-semibold text-teal-100 px-2.5 mb-1">
+                        <span id="trip-progress-status">Échappée en cours...</span>
+                        <span id="trip-progress-pct" class="text-amber-300 font-bold">0%</span>
+                    </div>
+                    <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+                        <div id="trip-progress-bar" class="bg-gradient-to-r from-teal-300 to-amber-300 h-2 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                    </div>
+                </div>
+
                 <p id="countdown-flight-info" class="text-xs text-teal-100/80 mt-3 flex items-center justify-center gap-1.5 font-medium">
                     <i class="fas fa-plane-departure text-amber-300"></i> Vol Air Tahiti Nui TN57 • Départ Paris CDG le 09/10/2026 à 12h05
                 </p>
@@ -149,20 +161,20 @@
                     <i class="fas fa-map-location-dot text-teal-600"></i> Explorer l'itinéraire
                 </a>
                 <a href="#journal" class="bg-teal-800/80 hover:bg-teal-800 text-white font-bold px-6 py-3 rounded-full backdrop-blur-sm border border-white/30 transition transform hover:-translate-y-0.5 flex items-center gap-2">
-                    <i class="fas fa-newspaper"></i> Derniers récits
+                    <i class="fas fa-newspaper"></i> Journal & Vols chronologiques
                 </a>
             </div>
         </div>
 
-        <!-- BANDEAU D'ÉTAPE DÉFILANT (Progress Ribbon) -->
+        <!-- BANDEAU D'ÉTAPE DÉFILANT (Progress Ribbon Chronologique) -->
         <div class="w-full mt-10 pt-4 border-t border-white/20 relative z-20">
             <div class="max-w-6xl mx-auto px-4">
                 <div class="flex items-center justify-between gap-2 mb-2">
                     <span class="text-xs font-bold uppercase tracking-wider text-teal-100 flex items-center gap-1.5">
-                        <i class="fas fa-route text-amber-300"></i> Fil d'Ariane du Périple : 6 Îles, 7 Étapes
+                        <i class="fas fa-route text-amber-300"></i> Fil d'Ariane Chronologique : 15 Étapes (Vols & Îles)
                     </span>
                     <span class="text-[11px] text-teal-200/90 hidden sm:inline">
-                        Cliquez sur une escale pour voir ses détails 🌊
+                        Suivez le cours du périple • Cliquez sur un vol ou une escale 🌊
                     </span>
                 </div>
                 <!-- Liste horizontale défilante des étapes -->
@@ -326,7 +338,7 @@
         <div class="flex justify-center mb-6">
             <div class="inline-flex bg-teal-50 p-1.5 rounded-2xl border border-teal-200/70 shadow-inner">
                 <button id="view-mode-stages" onclick="switchTimelineView('stages')" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-teal-800 text-white shadow-sm flex items-center gap-2">
-                    <span>🌴 Les 6 Îles & Étapes</span>
+                    <span>🌴 Chronologie Complète (15 Étapes : Îles & Vols)</span>
                 </button>
                 <button id="view-mode-daily" onclick="switchTimelineView('daily')" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition text-teal-900 hover:text-teal-700 flex items-center gap-2">
                     <span>📅 Programme Jour par Jour (22 jours)</span>
