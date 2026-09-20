@@ -20,8 +20,13 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <!-- Meta anti-cache pour forcer l'actualisation instantanée sur les navigateurs -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <!-- Custom CSS avec version pour le cache -->
+    <link rel="stylesheet" href="css/style.css?v=20260920-4">
 </head>
 <body class="bg-[#FAF7F2] text-[#264653] font-sans antialiased">
 
@@ -513,8 +518,8 @@
         </div>
     </footer>
 
-    <!-- SCRIPTS APPLICATIFS : Données directes et Logique -->
-    <script src="js/trip-data.js"></script>
-    <script src="js/app.js"></script>
+    <!-- SCRIPTS APPLICATIFS : Données directes et Logique avec cache-busting -->
+    <script src="js/trip-data.js?v=20260920-4"></script>
+    <script src="js/app.js?v=20260920-4"></script>
 </body>
 </html>
