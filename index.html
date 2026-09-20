@@ -81,6 +81,7 @@
 
             <!-- Liens de navigation Desktop -->
             <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+                <a href="#horloge" class="hover:text-teal-700 transition flex items-center gap-1.5"><i class="fas fa-clock text-teal-600"></i> Horloge</a>
                 <a href="#vols" class="hover:text-teal-700 transition flex items-center gap-1.5"><i class="fas fa-plane text-teal-600"></i> Vols</a>
                 <a href="#carte" class="hover:text-teal-700 transition flex items-center gap-1.5"><i class="fas fa-map-marked-alt text-teal-600"></i> Carte</a>
                 <a href="#journal" class="hover:text-teal-700 transition flex items-center gap-1.5"><i class="fas fa-book-open text-teal-600"></i> Journal</a>
@@ -208,6 +209,137 @@
         </div>
     </section>
 
+    <!-- SECTION HORLOGE INTERNATIONALE & DÉCALAGE HORAIRE PAR ÉTAPE -->
+    <section id="horloge" class="max-w-6xl mx-auto px-4 sm:px-6 mb-16 scroll-mt-20">
+        <div class="bg-gradient-to-br from-teal-950 via-teal-900 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-teal-700/50 relative overflow-hidden">
+            <!-- Halo lumineux de fond -->
+            <div class="absolute -right-20 -top-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- En-tête de la section -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6 relative z-10">
+                <div>
+                    <span class="text-amber-300 font-bold uppercase tracking-widest text-[11px] bg-white/10 px-3.5 py-1 rounded-full border border-white/15 inline-flex items-center gap-1.5 mb-2">
+                        <i class="fas fa-globe-americas text-amber-400"></i> Fuseaux Horaires & Rythme du Voyage
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold font-display flex items-center gap-2.5 text-white">
+                        <i class="fas fa-clock text-teal-400"></i> Horloge Internationale & Décalage
+                    </h2>
+                    <p class="text-xs sm:text-sm text-teal-100/80 mt-1 max-w-xl">
+                        Visualisez en temps réel l'heure en France métropolitaine et sur chaque étape du voyage, avec calcul instantané du décalage horaire et du rythme de vie local.
+                    </p>
+                </div>
+                <div class="text-right">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/30 border border-white/15 text-xs text-amber-300 font-mono">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> En direct
+                    </span>
+                </div>
+            </div>
+
+            <!-- Sélecteur d'Étape Rapide pour l'Horloge -->
+            <div class="mb-6 relative z-10">
+                <span class="text-xs font-semibold text-teal-200 block mb-2">
+                    Sélectionnez une zone / étape pour adapter l'heure et l'ambiance :
+                </span>
+                <div id="clock-stage-selector" class="flex flex-wrap items-center gap-2">
+                    <button type="button" onclick="selectClockZone('tahiti')" id="btn-clock-tahiti" class="clock-zone-btn active px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-400 text-teal-950 shadow-md transition flex items-center gap-1.5">
+                        🌺 Tahiti / Moorea / Tuamotu (UTC-10)
+                    </button>
+                    <button type="button" onclick="selectClockZone('marquises')" id="btn-clock-marquises" class="clock-zone-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/15 text-teal-100 hover:bg-white/25 transition flex items-center gap-1.5">
+                        🗿 Îles Marquises (UTC-9h30)
+                    </button>
+                    <button type="button" onclick="selectClockZone('lax')" id="btn-clock-lax" class="clock-zone-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/15 text-teal-100 hover:bg-white/25 transition flex items-center gap-1.5">
+                        🇺🇸 Escale Los Angeles LAX (PDT)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Double Cadran Digital & Badge de Décalage -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-center relative z-10">
+                <!-- Cadran 1 : Heure France Métropolitaine -->
+                <div class="lg:col-span-5 bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 shadow-inner flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs uppercase tracking-wider font-bold text-teal-200 flex items-center gap-1.5">
+                            🇫🇷 France (Paris)
+                        </span>
+                        <span id="clock-paris-daynight" class="text-xs font-medium text-amber-300 flex items-center gap-1">
+                            <!-- Icone jour/nuit -->
+                        </span>
+                    </div>
+                    <div class="my-2 text-center">
+                        <div id="clock-paris-time" class="font-mono text-4xl sm:text-5xl font-black tracking-wider text-white drop-shadow-md">
+                            --:--:--
+                        </div>
+                        <div id="clock-paris-date" class="text-xs sm:text-sm text-teal-200 mt-1 capitalize font-medium">
+                            Chargement...
+                        </div>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-white/15 text-[11px] text-teal-100/80 flex items-center justify-between">
+                        <span>Fuseau : <strong>Europe/Paris</strong></span>
+                        <span id="clock-paris-tz-badge" class="bg-white/15 px-2 py-0.5 rounded font-mono">UTC+2 / UTC+1</span>
+                    </div>
+                </div>
+
+                <!-- Indicateur Central de Décalage Horaire -->
+                <div class="lg:col-span-2 flex flex-col items-center justify-center py-2">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 text-teal-950 font-black flex items-center justify-center shadow-lg transform hover:rotate-12 transition duration-300 text-lg sm:text-xl border-2 border-white/30">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div id="clock-diff-badge" class="mt-2 px-3 py-1 rounded-full bg-amber-400 text-teal-950 font-black text-sm sm:text-base shadow font-mono text-center">
+                        -12h
+                    </div>
+                    <span id="clock-diff-text" class="text-[11px] text-amber-200 font-semibold mt-1 text-center leading-tight">
+                        12h de moins qu'à Paris
+                    </span>
+                </div>
+
+                <!-- Cadran 2 : Heure Étape / Polynésie -->
+                <div class="lg:col-span-5 bg-teal-800/60 backdrop-blur-md rounded-2xl p-5 border border-teal-400/30 shadow-inner flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <span id="clock-dest-title" class="text-xs uppercase tracking-wider font-bold text-amber-300 flex items-center gap-1.5">
+                            🌺 Polynésie (Tahiti & Îles)
+                        </span>
+                        <span id="clock-dest-daynight" class="text-xs font-medium text-amber-300 flex items-center gap-1">
+                            <!-- Icone jour/nuit -->
+                        </span>
+                    </div>
+                    <div class="my-2 text-center">
+                        <div id="clock-dest-time" class="font-mono text-4xl sm:text-5xl font-black tracking-wider text-amber-300 drop-shadow-md">
+                            --:--:--
+                        </div>
+                        <div id="clock-dest-date" class="text-xs sm:text-sm text-teal-100 mt-1 capitalize font-medium">
+                            Chargement...
+                        </div>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-white/15 text-[11px] text-teal-100/80 flex items-center justify-between">
+                        <span>Zone : <strong id="clock-dest-tz-name">Pacific/Tahiti</strong></span>
+                        <span id="clock-dest-status-pill" class="bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded font-mono font-bold">UTC-10</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bandeau de Rythme Biologique & Activité Typique en Direct -->
+            <div id="clock-life-context" class="mt-6 p-4 rounded-2xl bg-black/25 backdrop-blur-md border border-white/15 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm relative z-10">
+                <div class="flex items-center gap-3">
+                    <span id="clock-activity-icon" class="text-2xl">☀️</span>
+                    <div>
+                        <span id="clock-activity-title" class="font-bold text-amber-300 block">
+                            En ce moment sur l'île : Baignade & Vie insulaire
+                        </span>
+                        <span id="clock-activity-desc" class="text-teal-100/80 text-xs block">
+                            Le lagon scintille sous les alizés. Idéal pour explorer les récifs coralliens.
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="clock-family-jetlag-tip" class="inline-flex items-center gap-1 text-[11px] text-teal-200 bg-white/10 px-2.5 py-1 rounded-lg border border-white/10">
+                        <i class="fas fa-bed text-amber-300"></i> Astuce sommeil : Sieste de 13h recommandée pour les petits
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- SECTION VOLS & LOGISTIQUE AÉRIENNE -->
     <section id="vols" class="max-w-6xl mx-auto px-4 sm:px-6 mb-20 scroll-mt-20">
         <div class="text-center mb-10">
@@ -264,6 +396,18 @@
                     <span>🧳 <strong>Franchise :</strong> 23 kg/pers en soute + 10 kg cabine</span>
                     <span class="text-amber-300">🌺 Accueil colliers de fleurs</span>
                 </div>
+                <!-- Liens Externes de Suivi en Direct TN57 -->
+                <div class="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2">
+                    <a href="https://www.flightaware.com/live/flight/THT57" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400/90 hover:bg-amber-300 text-teal-950 font-bold text-xs transition shadow-sm">
+                        <i class="fas fa-satellite-dish"></i> Suivre TN57 (FlightAware) <i class="fas fa-external-link-alt text-[10px]"></i>
+                    </a>
+                    <a href="https://www.flightradar24.com/data/flights/tn57" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-medium text-xs border border-white/20 transition">
+                        <i class="fas fa-plane"></i> Flightradar24 <i class="fas fa-external-link-alt text-[10px]"></i>
+                    </a>
+                    <a href="https://www.tahiti-aeroport.pf/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-medium text-xs border border-white/20 transition">
+                        <i class="fas fa-building"></i> Aéroport Tahiti Faa'a <i class="fas fa-external-link-alt text-[10px]"></i>
+                    </a>
+                </div>
             </div>
 
             <!-- Vol Retour International -->
@@ -305,6 +449,18 @@
                 <div class="pt-3 border-t border-white/15 text-xs text-teal-100 flex flex-wrap items-center justify-between gap-2">
                     <span>🚗 <strong>Retour :</strong> Récupération auto Parking PR Eco</span>
                     <span class="text-rose-300">🐚 Colliers de coquillages</span>
+                </div>
+                <!-- Liens Externes de Suivi en Direct TN8 -->
+                <div class="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2">
+                    <a href="https://www.flightaware.com/live/flight/THT8" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-400/90 hover:bg-rose-300 text-teal-950 font-bold text-xs transition shadow-sm">
+                        <i class="fas fa-satellite-dish"></i> Suivre TN8 (FlightAware) <i class="fas fa-external-link-alt text-[10px]"></i>
+                    </a>
+                    <a href="https://www.flightradar24.com/data/flights/tn8" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-medium text-xs border border-white/20 transition">
+                        <i class="fas fa-plane"></i> Flightradar24 <i class="fas fa-external-link-alt text-[10px]"></i>
+                    </a>
+                    <a href="https://www.parisaeroport.fr/passagers/vols-et-compagnies" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-medium text-xs border border-white/20 transition">
+                        <i class="fas fa-building"></i> Paris Aéroport CDG <i class="fas fa-external-link-alt text-[10px]"></i>
+                    </a>
                 </div>
             </div>
         </div>

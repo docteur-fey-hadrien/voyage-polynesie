@@ -127,6 +127,7 @@ function launchApplication() {
     
     initHeroData();
     initLiveCountdown();
+    initInternationalClock();
     renderStagesRibbon();
     renderFlightsList();
     initMap();
@@ -323,6 +324,195 @@ function initLiveCountdown() {
 }
 
 // -----------------------------------------------------------------------------
+// 1.c Horloge Internationale & Décalage Horaire par Étape
+// -----------------------------------------------------------------------------
+let selectedClockZone = 'tahiti';
+
+const CLOCK_ZONES = {
+    tahiti: {
+        tz: 'Pacific/Tahiti',
+        name: 'Pacific/Tahiti',
+        label: '🌺 Polynésie (Tahiti & Îles)',
+        tag: 'UTC-10',
+        tips: 'Grand décalage : privilégier une sieste vers 13h et profiter des matinées lumineuses dès 5h30.',
+        activities: [
+            { start: 5, end: 7, icon: '🌅', title: 'Lever du jour tropical', desc: 'Le lagon s\'éveille, petit-déjeuner au soleil levant et premiers chants d\'oiseaux.' },
+            { start: 7, end: 11, icon: '☀️', title: 'Matinée Lagon & Excursions', desc: 'Idéal pour le snorkeling, les sorties pirogue ou la baignade avec les raies.' },
+            { start: 11, end: 14, icon: '🍍', title: 'Déjeuner local & Chaleur tropicale', desc: 'Poisson cru Ia Ota au lait de coco, fruits frais et pause ombragée.' },
+            { start: 14, end: 17, icon: '🏖️', title: 'Après-midi Plage & Sieste famille', desc: 'Détente les pieds dans l\'eau calme des motus ou lecture sous les cocotiers.' },
+            { start: 17, end: 19, icon: '🌇', title: 'Coucher de soleil féerique', desc: 'Ciel embrasé sur l\'océan, apéritif au son doux du ukulélé.' },
+            { start: 19, end: 22, icon: '🌺', title: 'Dîner & Soirée insulaire', desc: 'Dîner sous les étoiles, chants traditionnels ou roulottes de bord de mer.' },
+            { start: 22, end: 5, icon: '🌙', title: 'Nuit tropicale étoilée', desc: 'Tout le monde dort bercé par le ressac lointain de la barrière de corail.' }
+        ]
+    },
+    marquises: {
+        tz: 'Pacific/Marquesas',
+        name: 'Pacific/Marquesas',
+        label: '🗿 Îles Marquises (Terre des Hommes)',
+        tag: 'UTC-9h30',
+        tips: 'Fuseau spécifique des Marquises avec 30 minutes de différence par rapport à Tahiti.',
+        activities: [
+            { start: 5, end: 8, icon: '🌄', title: 'Matinée sur les crêtes volcaniques', desc: 'Fraîcheur matinale idéale pour les randonnées vers les cascades.' },
+            { start: 8, end: 17, icon: '🐴', title: 'Chevaux sauvages & Baies grandioses', desc: 'Exploration des vallées mystiques et artisanat de sculpture sur bois.' },
+            { start: 17, end: 21, icon: '🗿', title: 'Contes et légendes marquisiennes', desc: 'Dîner aux saveurs sauvages et chants anciens au crépuscule.' },
+            { start: 21, end: 5, icon: '🌌', title: 'Nuit profonde du Pacifique', desc: 'Silence absolu au pied des pitons basaltiques vertigineux.' }
+        ]
+    },
+    lax: {
+        tz: 'America/Los_Angeles',
+        name: 'America/Los_Angeles',
+        label: '🇺🇸 Escale Los Angeles (LAX)',
+        tag: 'PDT (UTC-7)',
+        tips: 'Escale technique TN57 / TN8 : formalité ESTA obligatoire, marche dans le terminal.',
+        activities: [
+            { start: 6, end: 12, icon: '☕', title: 'Matinée californienne', desc: 'Activité intense à LAX, cafés et correspondances internationales.' },
+            { start: 12, end: 18, icon: '✈️', title: 'Après-midi Escale & Transits', desc: 'Flot continu de Boeing Dreamliner reliant l\'Europe et le Pacifique.' },
+            { start: 18, end: 23, icon: '🌆', title: 'Soirée illuminée de la Cité des Anges', desc: 'Pistes scintillantes et lumières côtières de Santa Monica.' },
+            { start: 23, end: 6, icon: '🌃', title: 'Nuit aéroportuaire', desc: 'Vols transpacifiques de nuit filant sous les étoiles.' }
+        ]
+    }
+};
+
+function selectClockZone(zoneKey) {
+    if (!CLOCK_ZONES[zoneKey]) return;
+    selectedClockZone = zoneKey;
+
+    // Mise à jour des boutons
+    document.querySelectorAll('.clock-zone-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-amber-400', 'text-teal-950');
+        btn.classList.add('bg-white/15', 'text-teal-100');
+    });
+    const activeBtn = document.getElementById(`btn-clock-${zoneKey}`);
+    if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-amber-400', 'text-teal-950');
+        activeBtn.classList.remove('bg-white/15', 'text-teal-100');
+    }
+
+    updateInternationalClock();
+}
+
+function initInternationalClock() {
+    updateInternationalClock();
+    setInterval(updateInternationalClock, 1000);
+}
+
+function updateInternationalClock() {
+    const now = new Date();
+    const zoneConfig = CLOCK_ZONES[selectedClockZone] || CLOCK_ZONES.tahiti;
+
+    // 1. Heure de Paris (France)
+    const parisFormatterTime = new Intl.DateTimeFormat('fr-FR', {
+        timeZone: 'Europe/Paris',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    const parisFormatterDate = new Intl.DateTimeFormat('fr-FR', {
+        timeZone: 'Europe/Paris',
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+    const parisHour = parseInt(new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: 'numeric', hour12: false }).format(now), 10);
+
+    const parisTimeStr = parisFormatterTime.format(now);
+    const parisDateStr = parisFormatterDate.format(now);
+
+    const parisTimeEl = document.getElementById('clock-paris-time');
+    const parisDateEl = document.getElementById('clock-paris-date');
+    const parisDayNightEl = document.getElementById('clock-paris-daynight');
+
+    if (parisTimeEl) parisTimeEl.textContent = parisTimeStr;
+    if (parisDateEl) parisDateEl.textContent = parisDateStr;
+    if (parisDayNightEl) {
+        const isDayParis = (parisHour >= 7 && parisHour < 20);
+        parisDayNightEl.innerHTML = isDayParis ? `☀️ Jour` : `🌙 Nuit`;
+    }
+
+    // 2. Heure de l'Étape Sélectionnée (Polynésie ou Escale)
+    const destFormatterTime = new Intl.DateTimeFormat('fr-FR', {
+        timeZone: zoneConfig.tz,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    const destFormatterDate = new Intl.DateTimeFormat('fr-FR', {
+        timeZone: zoneConfig.tz,
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+    const destHour = parseInt(new Intl.DateTimeFormat('fr-FR', { timeZone: zoneConfig.tz, hour: 'numeric', hour12: false }).format(now), 10);
+
+    const destTimeStr = destFormatterTime.format(now);
+    const destDateStr = destFormatterDate.format(now);
+
+    const destTimeEl = document.getElementById('clock-dest-time');
+    const destDateEl = document.getElementById('clock-dest-date');
+    const destDayNightEl = document.getElementById('clock-dest-daynight');
+    const destTitleEl = document.getElementById('clock-dest-title');
+    const destTzNameEl = document.getElementById('clock-dest-tz-name');
+    const destStatusPill = document.getElementById('clock-dest-status-pill');
+
+    if (destTimeEl) destTimeEl.textContent = destTimeStr;
+    if (destDateEl) destDateEl.textContent = destDateStr;
+    if (destTitleEl) destTitleEl.innerHTML = zoneConfig.label;
+    if (destTzNameEl) destTzNameEl.textContent = zoneConfig.name;
+    if (destStatusPill) destStatusPill.textContent = zoneConfig.tag;
+
+    if (destDayNightEl) {
+        const isDayDest = (destHour >= 6 && destHour < 18);
+        destDayNightEl.innerHTML = isDayDest ? `☀️ Journée` : `🌙 Nuitée`;
+    }
+
+    // 3. Calcul du Décalage Horaire Précis
+    // On calcule la différence en millisecondes entre les deux fuseaux à l'instant T
+    const parisIsoStr = now.toLocaleString('en-US', { timeZone: 'Europe/Paris' });
+    const destIsoStr = now.toLocaleString('en-US', { timeZone: zoneConfig.tz });
+    const diffMs = new Date(destIsoStr).getTime() - new Date(parisIsoStr).getTime();
+    const diffHoursTotal = diffMs / (1000 * 60 * 60);
+
+    const diffBadgeEl = document.getElementById('clock-diff-badge');
+    const diffTextEl = document.getElementById('clock-diff-text');
+
+    if (diffBadgeEl && diffTextEl) {
+        const sign = diffHoursTotal > 0 ? `+${diffHoursTotal}h` : `${diffHoursTotal}h`;
+        diffBadgeEl.textContent = sign.replace('.5', 'h30');
+        if (diffHoursTotal < 0) {
+            const absH = Math.abs(diffHoursTotal).toString().replace('.5', 'h30');
+            diffTextEl.textContent = `${absH} de moins qu'à Paris`;
+        } else if (diffHoursTotal > 0) {
+            diffTextEl.textContent = `${diffHoursTotal}h d'avance sur Paris`;
+        } else {
+            diffTextEl.textContent = `Même heure qu'à Paris`;
+        }
+    }
+
+    // 4. Ambiance & Contexte de Vie Locale
+    const act = (zoneConfig.activities || []).find(a => {
+        if (a.start < a.end) {
+            return destHour >= a.start && destHour < a.end;
+        } else {
+            return destHour >= a.start || destHour < a.end;
+        }
+    }) || zoneConfig.activities[0];
+
+    const actIconEl = document.getElementById('clock-activity-icon');
+    const actTitleEl = document.getElementById('clock-activity-title');
+    const actDescEl = document.getElementById('clock-activity-desc');
+    const tipEl = document.getElementById('clock-family-jetlag-tip');
+
+    if (actIconEl && act) actIconEl.textContent = act.icon;
+    if (actTitleEl && act) actTitleEl.textContent = `En ce moment sur place : ${act.title}`;
+    if (actDescEl && act) actDescEl.textContent = act.desc;
+    if (tipEl) tipEl.innerHTML = `<i class="fas fa-bed text-amber-300"></i> ${zoneConfig.tips}`;
+}
+
+// -----------------------------------------------------------------------------
 // 1.c Bandeau d'Étapes (Stage Navigation Ribbon)
 // -----------------------------------------------------------------------------
 function renderStagesRibbon() {
@@ -379,6 +569,12 @@ function jumpToStage(stageId) {
     if (typeof currentViewMode !== 'undefined' && currentViewMode !== 'stages') {
         switchTimelineView('stages');
     }
+
+    // Synchroniser automatiquement l'horloge si l'étape est à LAX ou autre
+    if (stageId === 'vol-aller-tn57' || stageId === 'vol-retour-tn8') {
+        // Garder Tahiti par défaut ou LAX si transit
+    }
+
     setTimeout(() => {
         const target = document.getElementById(`stage-${stageId}`);
         if (target) {
@@ -453,6 +649,16 @@ function renderFlightsList() {
                         <i class="fas fa-info-circle text-amber-500"></i> ${flight.notes}
                     </span>
                 </div>
+                ${flight.externalLinks && flight.externalLinks.length > 0 ? `
+                    <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-2">
+                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1">Suivi & Liens :</span>
+                        ${flight.externalLinks.map(link => `
+                            <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-semibold border border-teal-200 transition">
+                                <i class="fas ${link.icon || 'fa-external-link-alt'} text-teal-600"></i> ${link.label} <i class="fas fa-arrow-up-right-from-square text-[9px] opacity-70"></i>
+                            </a>
+                        `).join('')}
+                    </div>
+                ` : ''}
             </div>
         `;
     }).join('');
@@ -694,6 +900,22 @@ function renderTimeline(stagesToRender) {
                             </div>
                         ` : ''}
 
+                        <!-- Liens Utiles & Suivi en Direct -->
+                        ${stage.externalLinks && stage.externalLinks.length > 0 ? `
+                            <div class="mb-4 p-3.5 bg-teal-50/70 rounded-2xl border border-teal-100">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-teal-900 mb-2 flex items-center gap-1.5">
+                                    <i class="fas fa-arrow-up-right-from-square text-teal-600"></i> Suivi du vol & Liens utiles
+                                </h4>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    ${stage.externalLinks.map(link => `
+                                        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-teal-50 text-teal-900 font-semibold text-xs border border-teal-200 shadow-sm transition">
+                                            <i class="fas ${link.icon || 'fa-external-link-alt'} text-teal-600"></i> ${link.label} <i class="fas fa-external-link-alt text-[10px] text-gray-400"></i>
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
                         <div class="pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
                             <span class="text-xs text-gray-500 italic">
                                 <i class="fas fa-bed text-teal-600"></i> ${stage.hotel}
@@ -771,6 +993,22 @@ function renderTimeline(stagesToRender) {
                             <div class="p-3.5 bg-rose-50/70 rounded-2xl mb-4 border border-rose-100 text-xs sm:text-sm text-gray-700 flex items-start gap-2.5">
                                 <span class="text-base">👶</span>
                                 <div><strong class="text-rose-950">Conseil Traversée avec les Enfants :</strong> ${stage.familyTips}</div>
+                            </div>
+                        ` : ''}
+
+                        <!-- Liens Utiles & Compagnies Maritimes -->
+                        ${stage.externalLinks && stage.externalLinks.length > 0 ? `
+                            <div class="mb-4 p-3.5 bg-cyan-50/70 rounded-2xl border border-cyan-200">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-teal-950 mb-2 flex items-center gap-1.5">
+                                    <i class="fas fa-ship text-cyan-700"></i> Horaires maritimes & Liens utiles
+                                </h4>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    ${stage.externalLinks.map(link => `
+                                        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-cyan-50 text-cyan-950 font-semibold text-xs border border-cyan-200 shadow-sm transition">
+                                            <i class="fas ${link.icon || 'fa-external-link-alt'} text-cyan-700"></i> ${link.label} <i class="fas fa-external-link-alt text-[10px] text-gray-400"></i>
+                                        </a>
+                                    `).join('')}
+                                </div>
                             </div>
                         ` : ''}
 
@@ -883,9 +1121,25 @@ function renderTimeline(stagesToRender) {
 
                                 <!-- Saveurs locales -->
                                 ${stage.culinaryTips ? `
-                                    <div class="p-3.5 bg-emerald-50/60 rounded-2xl mb-5 border border-emerald-100 text-xs sm:text-sm text-gray-700 flex items-start gap-2.5">
+                                    <div class="p-3.5 bg-emerald-50/60 rounded-2xl mb-4 border border-emerald-100 text-xs sm:text-sm text-gray-700 flex items-start gap-2.5">
                                         <span class="text-base">🍍</span>
                                         <div><strong class="text-emerald-950">À déguster sur l'île :</strong> ${stage.culinaryTips}</div>
+                                    </div>
+                                ` : ''}
+
+                                <!-- Liens Utiles & Découverte Locale -->
+                                ${stage.externalLinks && stage.externalLinks.length > 0 ? `
+                                    <div class="mb-5 p-3.5 bg-teal-50/70 rounded-2xl border border-teal-100">
+                                        <h4 class="text-xs font-bold uppercase tracking-wider text-teal-900 mb-2 flex items-center gap-1.5">
+                                            <i class="fas fa-compass text-teal-600"></i> Découverte & Liens officiels
+                                        </h4>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            ${stage.externalLinks.map(link => `
+                                                <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-teal-50 text-teal-900 font-semibold text-xs border border-teal-200 shadow-sm transition">
+                                                    <i class="fas ${link.icon || 'fa-external-link-alt'} text-teal-600"></i> ${link.label} <i class="fas fa-external-link-alt text-[10px] text-gray-400"></i>
+                                                </a>
+                                            `).join('')}
+                                        </div>
                                     </div>
                                 ` : ''}
                             </div>
