@@ -1,0 +1,13 @@
+.DS_Store
+Thumbs.db
+node_modules/
+*.log
+.env
+*.pdf
+mcp_gmail/
+DOSSIER_VOYAGE/
+SYNTHESE_ET_DOCUMENTS_VOYAGE.md
+JOURNAL_DE_BORD.md
+AGENTS.md
+GEMINI.md
+*.url

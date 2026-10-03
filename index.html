@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notre Voyage en Polynésie Française 🌺</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Leaflet CSS & JS for Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Meta anti-cache pour forcer l'actualisation instantanée sur les navigateurs -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <!-- Custom CSS avec version pour le cache -->
+    <link rel="stylesheet" href="css/style.css?v=20261003-1">
+</head>
+<body class="bg-[#FAF7F2] text-[#264653] font-sans antialiased">
+
+    <!-- BARRE DE NAVIGATION MODERNE & ÉPURÉE -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-teal-100 shadow-sm transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <span class="text-3xl transform group-hover:rotate-12 transition duration-300">🌺</span>
+                <div>
+                    <span class="font-display font-bold text-lg sm:text-xl text-teal-900 block leading-tight">Polynésie 2026</span>
+                    <span id="trip-travelers" class="text-xs text-teal-600 block font-medium">La famille en voyage</span>
+                </div>
+            </a>
+
+            <!-- Liens de navigation Desktop -->
+            <nav class="hidden lg:flex items-center gap-2 text-sm font-medium">
+                <a href="#itinerary" class="nav-tab-btn active"><i class="fas fa-route text-teal-600"></i> Itinéraire & Jours</a>
+                <a href="#vols" class="nav-tab-btn"><i class="fas fa-plane text-teal-600"></i> Suivi des Vols</a>
+                <a href="#carte" class="nav-tab-btn"><i class="fas fa-map-marked-alt text-teal-600"></i> Carte</a>
+                <a href="#horloge" class="nav-tab-btn"><i class="fas fa-clock text-teal-600"></i> Horloge</a>
+                <a href="#galerie" class="nav-tab-btn"><i class="fas fa-images text-teal-600"></i> Photos</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <a href="#itinerary" class="btn-primary text-xs sm:text-sm py-2 px-4 shadow-sm">
+                    <i class="fas fa-compass"></i> Explorer
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION ÉPURÉE & IMMERSIVE -->
+    <section class="hero-gradient text-white py-16 md:py-28 px-4 relative overflow-hidden">
+        <div class="max-w-5xl mx-auto text-center relative z-10">
+            
+            <!-- Badges de Synthèse en Haut -->
+            <div class="inline-flex flex-wrap items-center justify-center gap-2 bg-white/15 backdrop-blur-md border border-white/25 rounded-full px-4 py-1.5 mb-6 text-xs sm:text-sm shadow-inner">
+                <span class="flex items-center gap-1.5 font-semibold text-amber-300">
+                    <i class="fas fa-calendar-alt"></i> Du 09 Octobre au 01 Novembre 2026
+                </span>
+                <span class="opacity-40">•</span>
+                <span class="text-teal-100 font-medium">
+                    24 Jours d'Aventure • 6 Îles & Atolls
+                </span>
+                <span class="opacity-40">•</span>
+                <span class="text-white font-medium">
+                    Toute la tribu 👨‍👩‍👧‍👦
+                </span>
+            </div>
+
+            <!-- Titre Principal -->
+            <h1 id="trip-title" class="font-display text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight mb-4 leading-tight drop-shadow-md">
+                Notre Aventure Polynésienne
+            </h1>
+
+            <p id="trip-desc" class="text-base sm:text-lg text-teal-50/90 max-w-2xl mx-auto font-light leading-relaxed mb-8 drop-shadow">
+                Bienvenue sur notre carnet de bord interactif ! Retrouvez notre parcours jour par jour et au fil des îles du Pacifique : Tahiti, Moorea, Rangiroa, Raiatea, Taha'a et Maupiti.
+            </p>
+
+            <!-- COMPTE À REBOURS ÉPURÉ & MODERNE -->
+            <div class="max-w-xl mx-auto my-6 bg-white/10 backdrop-blur-md border border-white/25 rounded-3xl p-4 sm:p-6 shadow-xl">
+                <div class="text-xs uppercase tracking-widest text-teal-200 font-bold mb-3 flex items-center justify-center gap-2">
+                    <span id="countdown-indicator" class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+                    <span id="countdown-title">Décollage dans</span>
+                </div>
+                <div class="grid grid-cols-4 gap-2 sm:gap-3 text-center">
+                    <div class="bg-black/20 backdrop-blur-sm rounded-2xl p-2 sm:p-3 border border-white/10">
+                        <span id="count-days" class="font-display text-2xl sm:text-4xl font-extrabold text-white block">--</span>
+                        <span id="count-days-label" class="text-[10px] sm:text-xs text-teal-200 uppercase font-semibold">Jours</span>
+                    </div>
+                    <div class="bg-black/20 backdrop-blur-sm rounded-2xl p-2 sm:p-3 border border-white/10">
+                        <span id="count-hours" class="font-display text-2xl sm:text-4xl font-extrabold text-white block">--</span>
+                        <span id="count-hours-label" class="text-[10px] sm:text-xs text-teal-200 uppercase font-semibold">Heures</span>
+                    </div>
+                    <div class="bg-black/20 backdrop-blur-sm rounded-2xl p-2 sm:p-3 border border-white/10">
+                        <span id="count-minutes" class="font-display text-2xl sm:text-4xl font-extrabold text-white block">--</span>
+                        <span id="count-minutes-label" class="text-[10px] sm:text-xs text-teal-200 uppercase font-semibold">Minutes</span>
+                    </div>
+                    <div class="bg-black/20 backdrop-blur-sm rounded-2xl p-2 sm:p-3 border border-white/10">
+                        <span id="count-seconds" class="font-display text-2xl sm:text-4xl font-extrabold text-amber-300 block">--</span>
+                        <span id="count-seconds-label" class="text-[10px] sm:text-xs text-teal-200 uppercase font-semibold">Secondes</span>
+                    </div>
+                </div>
+
+                <p id="countdown-flight-info" class="text-xs text-teal-100/90 mt-3 flex items-center justify-center gap-1.5 font-medium">
+                    <i class="fas fa-plane-departure text-amber-300"></i> Vol Air Tahiti Nui TN57 • Départ Paris CDG le 09/10/2026 à 12h05
+                </p>
+            </div>
+
+            <!-- BOUTONS D'ACCÈS RAPIDES -->
+            <div class="flex flex-wrap justify-center gap-3 pt-2">
+                <a href="#itinerary" class="bg-white text-teal-900 font-bold px-6 py-3 rounded-full shadow-lg hover:bg-teal-50 transition transform hover:-translate-y-0.5 flex items-center gap-2 text-sm sm:text-base">
+                    <i class="fas fa-calendar-day text-teal-600"></i> Découvrir le Jour par Jour
+                </a>
+                <a href="#vols" class="bg-teal-800/80 hover:bg-teal-800 text-white font-bold px-6 py-3 rounded-full backdrop-blur-sm border border-white/30 transition transform hover:-translate-y-0.5 flex items-center gap-2 text-sm sm:text-base">
+                    <i class="fas fa-plane"></i> Suivi des Vols en Direct
+                </a>
+                <a href="#carte" class="bg-teal-900/60 hover:bg-teal-900/80 text-teal-100 font-medium px-5 py-3 rounded-full backdrop-blur-sm border border-white/20 transition flex items-center gap-2 text-sm">
+                    <i class="fas fa-map-marked-alt text-amber-300"></i> Carte Interactive
+                </a>
+            </div>
+
+            <!-- STATISTIQUES DU VOYAGE (KPIs) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto mt-10 text-center">
+                <div class="bg-white/10 backdrop-blur-md border border-white/15 p-3 rounded-2xl">
+                    <span class="font-display font-extrabold text-2xl text-amber-300 block">24 Jours</span>
+                    <span class="text-xs text-teal-100">Du Départ au Retour</span>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/15 p-3 rounded-2xl">
+                    <span class="font-display font-extrabold text-2xl text-white block">6 Îles</span>
+                    <span class="text-xs text-teal-100">Lagons & Atolls</span>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/15 p-3 rounded-2xl">
+                    <span class="font-display font-extrabold text-2xl text-amber-300 block">15 Étapes</span>
+                    <span class="text-xs text-teal-100">Séjours & Traversées</span>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/15 p-3 rounded-2xl">
+                    <span class="font-display font-extrabold text-2xl text-white block">6 Vols</span>
+                    <span class="text-xs text-teal-100">Suivis en Direct</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RUBAN D'ÉTAPES DÉFILANT -->
+        <div class="w-full mt-10 pt-4 border-t border-white/20 relative z-20">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-teal-100 flex items-center gap-1.5">
+                        <i class="fas fa-compass text-amber-300"></i> Fil Conducteur du Voyage : 15 Étapes
+                    </span>
+                    <span class="text-[11px] text-teal-200/90 hidden sm:inline">
+                        Cliquez sur une étape pour l'ouvrir immédiatement 🌊
+                    </span>
+                </div>
+                <div id="stages-ribbon" class="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-3 pt-1 no-scrollbar scroll-smooth">
+                    <!-- Rempli dynamiquement en JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION ITINÉRAIRE (DOUBLE VUE : JOUR PAR JOUR & PAR ÉTAPE) -->
+    <section id="itinerary" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16">
+        
+        <!-- En-tête de la section -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+            <div>
+                <span class="text-teal-700 font-bold uppercase tracking-widest text-xs bg-teal-100/70 px-3.5 py-1 rounded-full inline-flex items-center gap-1.5 mb-2">
+                    <i class="fas fa-route text-teal-600"></i> Au Fil de l'Aventure
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold font-display text-teal-950">
+                    Le Carnet de Voyage
+                </h2>
+                <p class="text-sm text-gray-500 mt-1 max-w-xl">
+                    Choisissez votre vue préférée : le <strong>Jour par Jour détaillé</strong> (avec les suivis des avions) ou la <strong>Vue par Île & Étape</strong>.
+                </p>
+            </div>
+
+            <!-- Sélecteur Principal de Vue (Jour par Jour vs Par Étape) -->
+            <div class="inline-flex bg-teal-100/70 p-1.5 rounded-2xl border border-teal-200 shadow-sm">
+                <button id="view-mode-daily" onclick="switchTimelineView('daily')" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition bg-teal-800 text-white shadow-md flex items-center gap-2">
+                    <i class="fas fa-calendar-day"></i> Découpé Jour par Jour (24 Jours)
+                </button>
+                <button id="view-mode-stages" onclick="switchTimelineView('stages')" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-teal-950 hover:text-teal-800 flex items-center gap-2">
+                    <i class="fas fa-umbrella-beach"></i> Par Île / Étape (15 Étapes)
+                </button>
+            </div>
+        </div>
+
+        <!-- Sous-contrôles pour la vue Étapes (Filtres & Mode compact/déplié) -->
+        <div id="stages-controls-bar" class="hidden flex-wrap items-center justify-between gap-4 mb-6 p-4 rounded-2xl bg-white border border-gray-100 shadow-sm">
+            <!-- Filtres par île -->
+            <div id="island-filters" class="flex flex-wrap items-center gap-2">
+                <!-- Rempli dynamiquement en JS -->
+            </div>
+
+            <!-- Toggle Compact vs Déplié -->
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <input type="text" id="stage-search-input" placeholder="Rechercher une île, un hôtel..." 
+                        class="pl-9 pr-4 py-1.5 text-xs sm:text-sm rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500 w-44 sm:w-56 transition">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                </div>
+
+                <div class="inline-flex bg-gray-100 p-1 rounded-xl border border-gray-200 text-xs font-semibold">
+                    <button id="btn-view-compact" onclick="setCardsDisplayMode('compact')" class="px-3 py-1 rounded-lg bg-white text-teal-900 shadow-sm transition">
+                        <i class="fas fa-th-large mr-1"></i> Synthétique
+                    </button>
+                    <button id="btn-view-expanded" onclick="setCardsDisplayMode('expanded')" class="px-3 py-1 rounded-lg text-gray-600 hover:text-teal-900 transition">
+                        <i class="fas fa-bars mr-1"></i> Déplié
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteneur Principal de la Timeline (Jour par Jour OU Étapes) -->
+        <div id="timeline-container">
+            <!-- Généré dynamiquement en JS -->
+        </div>
+    </section>
+
+    <!-- SECTION VOLS & SUIVI EN DIRECT (ÉPURÉE & CENTRÉE FAMILLE) -->
+    <section id="vols" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16">
+        <div class="text-center mb-8">
+            <span class="text-teal-700 font-bold uppercase tracking-widest text-xs bg-teal-100/70 px-3.5 py-1 rounded-full inline-flex items-center gap-1.5 mb-2">
+                <i class="fas fa-satellite-dish text-teal-600"></i> Radar & Satellite
+            </span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold font-display text-teal-950">
+                Suivi des Vols en Direct
+            </h2>
+            <p class="text-sm text-gray-500 max-w-xl mx-auto mt-1">
+                Suivez la position des avions en temps réel sur la carte satellite pendant les vols internationaux et les liaisons inter-îles.
+            </p>
+        </div>
+
+        <!-- Cartes Résumées des Vols Internationaux -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Vol Aller TN57 -->
+            <div class="bg-gradient-to-br from-teal-950 to-teal-900 text-white p-6 rounded-3xl shadow-xl border border-teal-800 relative overflow-hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="bg-amber-400 text-teal-950 text-xs font-bold uppercase px-3 py-1 rounded-full flex items-center gap-1.5">
+                        <i class="fas fa-plane-departure"></i> Vol Aller International
+                    </span>
+                    <span class="text-xs text-teal-200 font-mono font-bold">Vol TN57</span>
+                </div>
+                <div class="flex items-center justify-between gap-4 my-4">
+                    <div>
+                        <span class="text-3xl font-black block">CDG</span>
+                        <span class="text-xs text-teal-200">Paris Roissy</span>
+                        <span class="text-lg font-bold text-amber-300 block mt-1">12h05</span>
+                        <span class="text-[11px] text-teal-300">Ven. 09/10/2026</span>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center px-2">
+                        <span class="text-[11px] text-teal-200 mb-1 font-semibold">Boeing 787-9</span>
+                        <div class="w-full flex items-center">
+                            <div class="h-0.5 flex-1 bg-teal-400/40"></div>
+                            <i class="fas fa-plane text-amber-300 mx-2 text-sm"></i>
+                            <div class="h-0.5 flex-1 bg-teal-400/40"></div>
+                        </div>
+                        <span class="text-[10px] text-amber-200 mt-1 bg-white/10 px-2 py-0.5 rounded-full">
+                            Transit LAX • 22h
+                        </span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-3xl font-black block">PPT</span>
+                        <span class="text-xs text-teal-200">Tahiti Faa'a</span>
+                        <span class="text-lg font-bold text-amber-300 block mt-1">21h45</span>
+                        <span class="text-[11px] text-teal-300">Ven. 09/10/2026</span>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white/15 flex flex-wrap items-center gap-2">
+                    <a href="https://www.flightaware.com/live/flight/THT57" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-teal-950 font-bold text-xs transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fas fa-satellite-dish"></i> Suivre TN57 (FlightAware)
+                    </a>
+                    <a href="https://www.flightradar24.com/data/flights/tn57" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-medium text-xs border border-white/20 transition flex items-center gap-1.5">
+                        <i class="fas fa-plane"></i> Flightradar24
+                    </a>
+                </div>
+            </div>
+
+            <!-- Vol Retour TN8 -->
+            <div class="bg-gradient-to-br from-teal-950 to-teal-900 text-white p-6 rounded-3xl shadow-xl border border-teal-800 relative overflow-hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="bg-rose-400 text-teal-950 text-xs font-bold uppercase px-3 py-1 rounded-full flex items-center gap-1.5">
+                        <i class="fas fa-plane-arrival"></i> Vol Retour International
+                    </span>
+                    <span class="text-xs text-teal-200 font-mono font-bold">Vol TN8</span>
+                </div>
+                <div class="flex items-center justify-between gap-4 my-4">
+                    <div>
+                        <span class="text-3xl font-black block">PPT</span>
+                        <span class="text-xs text-teal-200">Tahiti Faa'a</span>
+                        <span class="text-lg font-bold text-amber-300 block mt-1">23h45</span>
+                        <span class="text-[11px] text-teal-300">Ven. 30/10/2026</span>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center px-2">
+                        <span class="text-[11px] text-teal-200 mb-1 font-semibold">Boeing 787-9</span>
+                        <div class="w-full flex items-center">
+                            <div class="h-0.5 flex-1 bg-teal-400/40"></div>
+                            <i class="fas fa-plane text-amber-300 mx-2 text-sm"></i>
+                            <div class="h-0.5 flex-1 bg-teal-400/40"></div>
+                        </div>
+                        <span class="text-[10px] text-rose-200 mt-1 bg-white/10 px-2 py-0.5 rounded-full">
+                            Transit LAX • +2 jours
+                        </span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-3xl font-black block">CDG</span>
+                        <span class="text-xs text-teal-200">Paris Roissy</span>
+                        <span class="text-lg font-bold text-amber-300 block mt-1">09h05</span>
+                        <span class="text-[11px] text-teal-300">Dim. 01/11/2026</span>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white/15 flex flex-wrap items-center gap-2">
+                    <a href="https://www.flightaware.com/live/flight/THT8" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-rose-400 hover:bg-rose-300 text-teal-950 font-bold text-xs transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fas fa-satellite-dish"></i> Suivre TN8 (FlightAware)
+                    </a>
+                    <a href="https://www.flightradar24.com/data/flights/tn8" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-medium text-xs border border-white/20 transition flex items-center gap-1.5">
+                        <i class="fas fa-plane"></i> Flightradar24
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des Vols Inter-Îles avec Suivis -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-gray-100">
+            <h3 class="text-xl font-bold font-display text-teal-950 mb-4 flex items-center gap-2">
+                <i class="fas fa-plane text-teal-600"></i> Les Liaisons Inter-Îles Air Tahiti
+            </h3>
+            <div id="flights-list" class="space-y-3">
+                <!-- Rempli dynamiquement en JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION CARTE INTERACTIVE -->
+    <section id="carte" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16">
+        <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-100">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <div>
+                    <span class="text-teal-700 font-bold uppercase tracking-widest text-xs bg-teal-100/70 px-3.5 py-1 rounded-full inline-flex items-center gap-1.5 mb-2">
+                        <i class="fas fa-map-marked-alt text-teal-600"></i> Géolocalisation
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-bold font-display text-teal-950">
+                        Carte Interactive du Périple
+                    </h2>
+                    <p class="text-sm text-gray-500">Cliquez sur un marqueur pour afficher l'île et ouvrir sa fiche détaillée.</p>
+                </div>
+                <div class="flex items-center gap-3 text-xs font-medium">
+                    <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Visité</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block animate-ping"></span> Actuel</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> À venir</span>
+                </div>
+            </div>
+
+            <!-- Carte Leaflet -->
+            <div id="map"></div>
+        </div>
+    </section>
+
+    <!-- SECTION HORLOGE INTERNATIONALE & DÉCALAGE HORAIRE -->
+    <section id="horloge" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16">
+        <div class="bg-gradient-to-br from-teal-950 via-teal-900 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-teal-700/40 relative overflow-hidden">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6 relative z-10">
+                <div>
+                    <span class="text-amber-300 font-bold uppercase tracking-widest text-[11px] bg-white/10 px-3 py-1 rounded-full border border-white/15 inline-flex items-center gap-1.5 mb-2">
+                        <i class="fas fa-globe-americas"></i> Fuseaux Horaires en Direct
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold font-display">
+                        Horloge Internationale & Décalage
+                    </h2>
+                    <p class="text-xs sm:text-sm text-teal-100/80 mt-1 max-w-xl">
+                        Comparez l'heure exacte en France et sur vos îles, avec calcul instantané du décalage horaire (-12h) et des activités en cours.
+                    </p>
+                </div>
+                <div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/30 border border-white/15 text-xs text-amber-300 font-mono">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Synchro active
+                    </span>
+                </div>
+            </div>
+
+            <!-- Sélecteur de Fuseau -->
+            <div class="mb-6 relative z-10">
+                <div id="clock-stage-selector" class="flex flex-wrap items-center gap-2">
+                    <button type="button" onclick="selectClockZone('tahiti')" id="btn-clock-tahiti" class="clock-zone-btn active px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-400 text-teal-950 shadow-md transition">
+                        🌺 Tahiti / Moorea / Tuamotu (UTC-10)
+                    </button>
+                    <button type="button" onclick="selectClockZone('marquises')" id="btn-clock-marquises" class="clock-zone-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white/15 text-teal-100 hover:bg-white/25 transition">
+                        🗿 Îles Marquises (UTC-9h30)
+                    </button>
+                    <button type="button" onclick="selectClockZone('lax')" id="btn-clock-lax" class="clock-zone-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white/15 text-teal-100 hover:bg-white/25 transition">
+                        🇺🇸 Escale Los Angeles (PDT)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Doubles Cadrans -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-center relative z-10">
+                <!-- Cadran Paris -->
+                <div class="lg:col-span-5 bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 text-center">
+                    <span class="text-xs uppercase tracking-wider font-bold text-teal-200 block mb-1">🇫🇷 France (Paris)</span>
+                    <div id="clock-paris-time" class="font-mono text-4xl sm:text-5xl font-black text-white drop-shadow-md">--:--:--</div>
+                    <div id="clock-paris-date" class="text-xs text-teal-200 mt-1 capitalize font-medium">Chargement...</div>
+                </div>
+
+                <!-- Badge Décalage Central -->
+                <div class="lg:col-span-2 flex flex-col items-center justify-center py-2">
+                    <div id="clock-diff-badge" class="px-4 py-1.5 rounded-full bg-amber-400 text-teal-950 font-black text-base shadow font-mono">
+                        -12h
+                    </div>
+                    <span id="clock-diff-text" class="text-[11px] text-amber-200 font-semibold mt-1 text-center">12h de moins</span>
+                </div>
+
+                <!-- Cadran Polynésie -->
+                <div class="lg:col-span-5 bg-teal-800/60 backdrop-blur-md rounded-2xl p-5 border border-teal-400/30 text-center">
+                    <span id="clock-dest-title" class="text-xs uppercase tracking-wider font-bold text-amber-300 block mb-1">🌺 Polynésie</span>
+                    <div id="clock-dest-time" class="font-mono text-4xl sm:text-5xl font-black text-amber-300 drop-shadow-md">--:--:--</div>
+                    <div id="clock-dest-date" class="text-xs text-teal-100 mt-1 capitalize font-medium">Chargement...</div>
+                </div>
+            </div>
+
+            <!-- Rythme Biologique Local -->
+            <div id="clock-life-context" class="mt-6 p-4 rounded-2xl bg-black/25 backdrop-blur-md border border-white/15 flex flex-wrap items-center justify-between gap-3 text-xs relative z-10">
+                <div class="flex items-center gap-3">
+                    <span id="clock-activity-icon" class="text-2xl">☀️</span>
+                    <div>
+                        <span id="clock-activity-title" class="font-bold text-amber-300 block">En ce moment sur l'île</span>
+                        <span id="clock-activity-desc" class="text-teal-100/80 block">Le lagon scintille sous les alizés.</span>
+                    </div>
+                </div>
+                <span id="clock-family-jetlag-tip" class="inline-flex items-center gap-1 text-[11px] text-teal-200 bg-white/10 px-2.5 py-1 rounded-lg border border-white/10">
+                    <i class="fas fa-bed text-amber-300"></i> Conseils sommeil & jetlag disponibles
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION GALERIE PHOTOS -->
+    <section id="galerie" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16">
+        <div class="text-center mb-8">
+            <span class="text-teal-700 font-bold uppercase tracking-widest text-xs bg-teal-100/70 px-3.5 py-1 rounded-full inline-flex items-center gap-1.5 mb-2">
+                <i class="fas fa-camera text-teal-600"></i> Instantanés
+            </span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold font-display text-teal-950">
+                Galerie de Souvenirs
+            </h2>
+            <p class="text-sm text-gray-500 max-w-xl mx-auto mt-1">
+                Les plus beaux lagons, atolls et paysages du séjour. Cliquez sur une photo pour l'afficher en grand écran.
+            </p>
+        </div>
+
+        <div id="photo-gallery" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- Rempli dynamiquement en JS -->
+        </div>
+    </section>
+
+    <!-- MODALE COMPLÈTE DE DÉTAIL D'ÉTAPE ("EN SAVOIR PLUS") -->
+    <div id="stage-detail-modal" class="stage-modal-backdrop" onclick="closeStageModalOnBackdrop(event)">
+        <div class="stage-modal-dialog relative overflow-hidden" onclick="event.stopPropagation()">
+            <!-- Bouton fermer -->
+            <button onclick="closeStageModal()" class="modal-close-btn" title="Fermer (Échap)">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+
+            <!-- Contenu dynamique de la modale injecté par renderStageModalContent() -->
+            <div id="stage-modal-content">
+                <!-- Rempli dynamiquement en JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LIGHTBOX POUR PHOTOS -->
+    <div id="lightbox-modal" class="lightbox-modal">
+        <button id="lightbox-close" class="absolute top-6 right-6 text-white text-3xl hover:text-amber-400 z-50 p-2">
+            <i class="fas fa-times"></i>
+        </button>
+        <button onclick="prevLightbox()" class="absolute left-6 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-amber-400 z-50 p-3">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button onclick="nextLightbox()" class="absolute right-6 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-amber-400 z-50 p-3">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <div class="flex flex-col items-center">
+            <img id="lightbox-img" class="lightbox-img" src="" alt="Agrandissement photo">
+            <span id="lightbox-counter" class="text-white/70 text-xs mt-3 bg-black/50 px-3 py-1 rounded-full"></span>
+        </div>
+    </div>
+
+    <!-- BOUTON RETOUR EN HAUT FLOTTANT -->
+    <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Retour en haut">
+        <i class="fas fa-chevron-up text-lg"></i>
+    </button>
+
+    <!-- PIED DE PAGE -->
+    <footer class="bg-teal-950 text-teal-200 py-12 px-4 border-t border-teal-900 mt-16">
+        <div class="max-w-5xl mx-auto text-center">
+            <p class="text-4xl mb-3">🌺</p>
+            <h3 class="text-white font-display text-2xl font-bold mb-2">Māuruuru roa & Nana !</h3>
+            <p class="text-sm text-teal-300 max-w-md mx-auto mb-6">
+                Merci de suivre notre formidable aventure polynésienne en famille.
+            </p>
+            <div class="text-xs text-teal-400/80 border-t border-teal-900/80 pt-6 flex flex-wrap justify-center gap-4">
+                <span>Carnet de voyage familial interactif</span>
+                <span>•</span>
+                <span>Hébergé avec amour sur GitHub Pages</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS APPLICATIFS : Données directes et Logique avec cache-busting -->
+    <script src="js/trip-data.js?v=20261003-1"></script>
+    <script src="js/app.js?v=20261003-1"></script>
+</body>
+</html>
