@@ -26,7 +26,7 @@
     <meta http-equiv="Expires" content="0">
 
     <!-- Custom CSS avec version pour le cache -->
-    <link rel="stylesheet" href="css/style.css?v=20261003-1">
+    <link rel="stylesheet" href="css/style.css?v=20261003-2">
 </head>
 <body class="bg-[#FAF7F2] text-[#264653] font-sans antialiased">
 
@@ -45,6 +45,7 @@
             <nav class="hidden lg:flex items-center gap-2 text-sm font-medium">
                 <a href="#itinerary" class="nav-tab-btn active"><i class="fas fa-route text-teal-600"></i> Itinéraire & Jours</a>
                 <a href="#vols" class="nav-tab-btn"><i class="fas fa-plane text-teal-600"></i> Suivi des Vols</a>
+                <a href="#meteo" class="nav-tab-btn"><i class="fas fa-cloud-sun text-teal-600"></i> Météo des Îles</a>
                 <a href="#carte" class="nav-tab-btn"><i class="fas fa-map-marked-alt text-teal-600"></i> Carte</a>
                 <a href="#horloge" class="nav-tab-btn"><i class="fas fa-clock text-teal-600"></i> Horloge</a>
                 <a href="#galerie" class="nav-tab-btn"><i class="fas fa-images text-teal-600"></i> Photos</a>
@@ -121,11 +122,14 @@
                 <a href="#itinerary" class="bg-white text-teal-900 font-bold px-6 py-3 rounded-full shadow-lg hover:bg-teal-50 transition transform hover:-translate-y-0.5 flex items-center gap-2 text-sm sm:text-base">
                     <i class="fas fa-calendar-day text-teal-600"></i> Découvrir le Jour par Jour
                 </a>
+                <a href="#meteo" class="bg-amber-400 hover:bg-amber-300 text-teal-950 font-bold px-6 py-3 rounded-full shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2 text-sm sm:text-base">
+                    <i class="fas fa-cloud-sun"></i> Météo & Climat des Îles
+                </a>
                 <a href="#vols" class="bg-teal-800/80 hover:bg-teal-800 text-white font-bold px-6 py-3 rounded-full backdrop-blur-sm border border-white/30 transition transform hover:-translate-y-0.5 flex items-center gap-2 text-sm sm:text-base">
-                    <i class="fas fa-plane"></i> Suivi des Vols en Direct
+                    <i class="fas fa-plane"></i> Suivi des Vols
                 </a>
                 <a href="#carte" class="bg-teal-900/60 hover:bg-teal-900/80 text-teal-100 font-medium px-5 py-3 rounded-full backdrop-blur-sm border border-white/20 transition flex items-center gap-2 text-sm">
-                    <i class="fas fa-map-marked-alt text-amber-300"></i> Carte Interactive
+                    <i class="fas fa-map-marked-alt text-amber-300"></i> Carte
                 </a>
             </div>
 
@@ -343,6 +347,128 @@
         </div>
     </section>
 
+    <!-- SECTION MÉTÉO & CARTE CLIMATIQUE DES ÎLES -->
+    <section id="meteo" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-gray-100 relative overflow-hidden">
+            <!-- En-tête de section -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+                <div>
+                    <span class="text-teal-700 font-bold uppercase tracking-widest text-xs bg-teal-100/70 px-3.5 py-1 rounded-full inline-flex items-center gap-1.5 mb-2">
+                        <i class="fas fa-sun text-amber-500"></i> Climat & Conditions Océaniques
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold font-display text-teal-950">
+                        Carte & Bulletin Météo des 6 Îles
+                    </h2>
+                    <p class="text-xs sm:text-sm text-gray-500 mt-1 max-w-2xl">
+                        Consultez la météo en direct, les températures de l'air et de l'eau du lagon (28°C), les alizés et les prévisions pour chaque escale de notre voyage.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-3.5 py-1.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 text-xs font-semibold flex items-center gap-2 shadow-xs">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="weather-update-status">Météo en direct • Polynésie</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Carte Météo Interactive & Vue Satellite -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+                <!-- Carte Leaflet Météo -->
+                <div class="lg:col-span-8 relative">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fas fa-map-location-dot text-teal-600"></i> Carte Météorologique Interactive
+                        </span>
+                        <span class="text-[11px] text-gray-400">Cliquez sur une île pour afficher son bulletin</span>
+                    </div>
+                    <div id="weather-map" class="h-96 w-full rounded-2xl border border-gray-200 shadow-inner relative z-10"></div>
+                </div>
+
+                <!-- Panneau Focus Île Sélectionnée -->
+                <div class="lg:col-span-4 flex flex-col justify-between p-5 rounded-2xl bg-gradient-to-br from-teal-950 to-teal-900 text-white shadow-md border border-teal-800">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[11px] uppercase tracking-wider font-bold text-amber-300 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10" id="selected-island-archipel">
+                                Îles du Vent
+                            </span>
+                            <span class="text-xs text-teal-200" id="selected-island-time">Heure locale</span>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-display font-extrabold text-2xl sm:text-3xl text-white" id="selected-island-name">
+                                    Tahiti
+                                </h3>
+                                <p class="text-xs text-teal-200" id="selected-island-desc">
+                                    Arrivée & Départ international
+                                </p>
+                            </div>
+                            <span class="text-5xl" id="selected-island-icon">☀️</span>
+                        </div>
+
+                        <div class="flex items-baseline gap-2 mb-4">
+                            <span class="font-display font-black text-5xl text-amber-300" id="selected-island-temp">29°C</span>
+                            <span class="text-xs text-teal-200" id="selected-island-condition">Ensoleillé avec brise</span>
+                        </div>
+
+                        <!-- Grille météo détaillée -->
+                        <div class="grid grid-cols-2 gap-2 text-xs mb-4">
+                            <div class="p-2.5 rounded-xl bg-white/10 border border-white/10">
+                                <span class="text-teal-300 block text-[10px] uppercase font-bold">Eau du lagon</span>
+                                <span class="font-bold text-base text-white" id="selected-island-water">28°C</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-white/10 border border-white/10">
+                                <span class="text-teal-300 block text-[10px] uppercase font-bold">Vent / Alizés</span>
+                                <span class="font-bold text-base text-white" id="selected-island-wind">15 km/h ESE</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-white/10 border border-white/10">
+                                <span class="text-teal-300 block text-[10px] uppercase font-bold">Indice UV</span>
+                                <span class="font-bold text-base text-amber-300" id="selected-island-uv">8 (Très fort)</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-white/10 border border-white/10">
+                                <span class="text-teal-300 block text-[10px] uppercase font-bold">Humidité</span>
+                                <span class="font-bold text-base text-white" id="selected-island-humidity">72%</span>
+                            </div>
+                        </div>
+
+                        <!-- Conseil météo pour la famille -->
+                        <div class="p-3 rounded-xl bg-white/10 border border-white/10 text-xs text-teal-100 flex items-start gap-2">
+                            <span class="text-base">🤿</span>
+                            <span id="selected-island-tip">
+                                Conditions idéales pour le snorkeling et la baignade avec les enfants. Lycra et crème solaire minérale indispensables.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-white/15">
+                        <a href="https://meteo.pf/" target="_blank" rel="noopener noreferrer" class="w-full py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-teal-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
+                            <i class="fas fa-cloud-sun-rain"></i> Bulletin Officiel Météo-France Polynésie
+                            <i class="fas fa-external-link-alt text-[9px] opacity-70 ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grille des 6 Îles du Périple (Cartes Synthétiques) -->
+            <div class="mb-6">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-teal-900 mb-3 flex items-center gap-1.5">
+                    <i class="fas fa-table-cells text-teal-600"></i> Bulletin Météo pour chaque île du voyage
+                </h3>
+                <div id="weather-cards-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <!-- Généré dynamiquement en JS -->
+                </div>
+            </div>
+
+            <!-- Guide Climatologique du Voyage -->
+            <div class="p-4 rounded-2xl bg-teal-50/70 border border-teal-100 text-xs text-gray-700 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🌺</span>
+                    <span><strong>Saison d'Octobre en Polynésie :</strong> Fin de la saison fraîche, ensoleillement optimal, températures douces (28-30°C dans l'air, 28°C dans l'eau) et alizés réguliers qui tempèrent agréablement l'atmosphère pour toute la famille.</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- SECTION CARTE INTERACTIVE -->
     <section id="carte" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16">
         <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-100">
@@ -519,7 +645,7 @@
     </footer>
 
     <!-- SCRIPTS APPLICATIFS : Données directes et Logique avec cache-busting -->
-    <script src="js/trip-data.js?v=20261003-1"></script>
-    <script src="js/app.js?v=20261003-1"></script>
+    <script src="js/trip-data.js?v=20261003-2"></script>
+    <script src="js/app.js?v=20261003-2"></script>
 </body>
 </html>

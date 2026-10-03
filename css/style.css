@@ -432,3 +432,54 @@ html {
     background-color: #F59E0B;
     color: #FFFFFF;
 }
+
+/* ==========================================================================
+   CARTE MÉTÉO INTERACTIVE & BULLES D'ÎLES
+   ========================================================================== */
+.weather-map-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+.weather-marker-bubble {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 2px solid #028090;
+    border-radius: 9999px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #0f3e48;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.weather-bubble-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.weather-bubble-temp {
+    color: #0d9488;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.weather-marker-bubble:hover,
+.weather-marker-bubble.active-weather-bubble {
+    transform: scale(1.18);
+    border-color: #f59e0b;
+    background: #fffbeb;
+    color: #78350f;
+    box-shadow: 0 6px 18px rgba(245, 158, 11, 0.45);
+    z-index: 1000 !important;
+}
+
+.weather-marker-bubble.active-weather-bubble .weather-bubble-temp {
+    color: #b45309;
+}
+

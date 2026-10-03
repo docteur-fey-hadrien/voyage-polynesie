@@ -30,19 +30,23 @@ function launchApplication() {
     renderStagesRibbon();
     renderFlightsList();
     initMap();
+    initWeatherModule();
     renderMainTimeline();
     renderFilters();
     renderGallery();
     initLightbox();
     initModalKeyListeners();
 
-    // Recalcul de la taille de la carte Leaflet
+    // Recalcul de la taille des cartes Leaflet
     setTimeout(() => {
         if (map) {
             map.invalidateSize();
             if (polyline) {
                 map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
             }
+        }
+        if (weatherMap) {
+            weatherMap.invalidateSize();
         }
     }, 400);
 }
@@ -1186,4 +1190,273 @@ function initBackToTop() {
             btn.classList.remove('visible');
         }
     });
+}
+
+// =============================================================================
+// 15. CARTE MÉTÉO INTERACTIVE & BULLETIN CLIMATIQUE DES 6 ÎLES
+// =============================================================================
+let weatherMap;
+let weatherMarkers = [];
+let selectedWeatherIslandKey = 'tahiti';
+
+const ISLANDS_WEATHER_DATA = {
+    tahiti: {
+        id: 'tahiti',
+        name: 'Tahiti',
+        archipel: 'Îles du Vent',
+        desc: 'Arrivée & Départ international • Tahiti Nui & Iti',
+        coords: [-17.6509, -149.4260],
+        icon: '☀️',
+        temp: 29,
+        waterTemp: 28,
+        condition: 'Ensoleillé • Belle brise marine',
+        wind: '16 km/h ESE',
+        uv: '8 (Très fort)',
+        humidity: '72%',
+        pressure: '1014 hPa',
+        tip: 'Idéal pour l\'excursion Teahupoo et les cascades de Faarumai. Pensez au chapeau et au lycra anti-UV pour les enfants.'
+    },
+    moorea: {
+        id: 'moorea',
+        name: 'Moorea',
+        archipel: 'Îles du Vent',
+        desc: 'Lagon turquoise & baies majestueuses',
+        coords: [-17.5388, -149.8295],
+        icon: '🌤️',
+        temp: 29,
+        waterTemp: 28,
+        condition: 'Ciel bleu voilé • Mer très calme',
+        wind: '14 km/h E',
+        uv: '9 (Très fort)',
+        humidity: '70%',
+        pressure: '1014 hPa',
+        tip: 'Excellente visibilité sous-marine (plus de 30m). Eau idéale pour la sortie baleines et les raies à la plage des Tipaniers.'
+    },
+    rangiroa: {
+        id: 'rangiroa',
+        name: 'Rangiroa',
+        archipel: 'Tuamotu',
+        desc: 'Atoll géant • Lagon Bleu & Passe de Tiputa',
+        coords: [-14.9822, -147.7166],
+        icon: '☀️',
+        temp: 30,
+        waterTemp: 29,
+        condition: 'Plein soleil • Alizés réguliers',
+        wind: '22 km/h ESE',
+        uv: '10 (Extrême)',
+        humidity: '68%',
+        pressure: '1013 hPa',
+        tip: 'Alizés constants très agréables. Réverbération intense sur les sables blancs et roses du Lagon Bleu : lunettes polarisées recommandées !'
+    },
+    raiatea: {
+        id: 'raiatea',
+        name: 'Raiatea',
+        archipel: 'Îles Sous-le-Vent',
+        desc: 'L\'île sacrée • Rivière Faaroa & Marae UNESCO',
+        coords: [-16.7214, -151.4649],
+        icon: '⛅',
+        temp: 28,
+        waterTemp: 28,
+        condition: 'Soleil et passages nuageux tropicaux',
+        wind: '15 km/h ESE',
+        uv: '8 (Très fort)',
+        humidity: '74%',
+        pressure: '1014 hPa',
+        tip: 'Microclimat luxuriant très doux. Eau calme sur la rivière Faaroa en pirogue et fraîcheur agréable sur les hauteurs du mont Temehani.'
+    },
+    tahaa: {
+        id: 'tahaa',
+        name: 'Taha\'a',
+        archipel: 'Îles Sous-le-Vent',
+        desc: 'L\'île Vanille • Jardin de corail du motu Tautau',
+        coords: [-16.6067, -151.4988],
+        icon: '☀️',
+        temp: 29,
+        waterTemp: 28,
+        condition: 'Ensoleillé • Eau cristalline',
+        wind: '13 km/h E',
+        uv: '8 (Très fort)',
+        humidity: '71%',
+        pressure: '1014 hPa',
+        tip: 'Courant doux parfait pour le snorkeling dérivant entre les deux motus du jardin de corail. Eau tiède et transparente.'
+    },
+    maupiti: {
+        id: 'maupiti',
+        name: 'Maupiti',
+        archipel: 'Îles Sous-le-Vent',
+        desc: 'Le paradis secret • Raies manta & motu préservés',
+        coords: [-16.4440, -152.2530],
+        icon: '☀️',
+        temp: 29,
+        waterTemp: 28,
+        condition: 'Grand bleu limpide • Lagon miroir',
+        wind: '12 km/h E',
+        uv: '9 (Très fort)',
+        humidity: '69%',
+        pressure: '1014 hPa',
+        tip: 'Conditions exceptionnelles pour l\'observation silencieuse des raies manta au petit matin. Eau translucide jusqu\'aux chevilles à la plage de Tereia.'
+    }
+};
+
+function initWeatherModule() {
+    renderWeatherCards();
+    initWeatherMap();
+    selectWeatherIsland('tahiti', false);
+}
+
+function initWeatherMap() {
+    const mapEl = document.getElementById('weather-map');
+    if (!mapEl || typeof L === 'undefined') return;
+
+    if (weatherMap) {
+        weatherMap.remove();
+        weatherMarkers = [];
+    }
+
+    // Centrage sur l'archipel de la Société & Tuamotu
+    weatherMap = L.map('weather-map', { scrollWheelZoom: false }).setView([-16.6, -149.9], 7);
+
+    // Fond de carte océanique épuré
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap • Météo Polynésie',
+        maxZoom: 18,
+    }).addTo(weatherMap);
+
+    // Création des marqueurs météo personnalisés pour chaque île
+    Object.values(ISLANDS_WEATHER_DATA).forEach((island) => {
+        const customWeatherIcon = L.divIcon({
+            className: 'weather-map-marker',
+            html: `
+                <div class="weather-marker-bubble" id="marker-bubble-${island.id}">
+                    <span class="weather-bubble-icon">${island.icon}</span>
+                    <span class="weather-bubble-temp">${island.temp}°</span>
+                </div>
+            `,
+            iconSize: [52, 30],
+            iconAnchor: [26, 15],
+            popupAnchor: [0, -18]
+        });
+
+        const marker = L.marker(island.coords, { icon: customWeatherIcon }).addTo(weatherMap);
+
+        const popupContent = `
+            <div style="font-family: inherit; padding: 10px; width: 200px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                    <strong style="color: #0f3e48; font-size: 1rem;">${island.name}</strong>
+                    <span style="font-size: 1.3rem;">${island.icon}</span>
+                </div>
+                <div style="color: #028090; font-size: 1.1rem; font-weight: 800; margin-bottom: 2px;">
+                    Air ${island.temp}°C • Eau ${island.waterTemp}°C
+                </div>
+                <p style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">${island.condition}</p>
+                <button onclick="selectWeatherIsland('${island.id}', true)" style="width: 100%; background: #028090; color: white; border: none; padding: 5px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
+                    Voir le bulletin complet →
+                </button>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent);
+        marker.on('click', () => {
+            selectWeatherIsland(island.id, false);
+        });
+
+        weatherMarkers.push({ id: island.id, marker: marker });
+    });
+}
+
+function renderWeatherCards() {
+    const grid = document.getElementById('weather-cards-grid');
+    if (!grid) return;
+
+    grid.innerHTML = Object.values(ISLANDS_WEATHER_DATA).map(island => {
+        const isActive = island.id === selectedWeatherIslandKey;
+        const activeClass = isActive ? 'border-amber-400 bg-teal-50 shadow-md ring-2 ring-amber-400/40' : 'border-gray-200 bg-white hover:border-teal-300 hover:shadow-sm';
+
+        return `
+            <button type="button" onclick="selectWeatherIsland('${island.id}', true)" id="weather-card-btn-${island.id}" class="text-left p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between ${activeClass}">
+                <div class="flex items-center justify-between gap-1 mb-2">
+                    <span class="font-bold text-xs sm:text-sm text-teal-950 truncate">${island.name}</span>
+                    <span class="text-xl flex-shrink-0">${island.icon}</span>
+                </div>
+                <div>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-xl sm:text-2xl font-black font-display text-teal-900">${island.temp}°C</span>
+                        <span class="text-[10px] text-teal-600 font-semibold">Air</span>
+                    </div>
+                    <div class="text-[11px] text-gray-500 font-medium flex items-center gap-1 mt-0.5">
+                        <i class="fas fa-water text-cyan-600 text-[10px]"></i> Eau : <strong class="text-teal-900">${island.waterTemp}°C</strong>
+                    </div>
+                </div>
+            </button>
+        `;
+    }).join('');
+}
+
+function selectWeatherIsland(islandId, panMap = false) {
+    const data = ISLANDS_WEATHER_DATA[islandId];
+    if (!data) return;
+
+    selectedWeatherIslandKey = islandId;
+
+    // Mise à jour du panneau latéral droit
+    const nameEl = document.getElementById('selected-island-name');
+    const archipelEl = document.getElementById('selected-island-archipel');
+    const descEl = document.getElementById('selected-island-desc');
+    const iconEl = document.getElementById('selected-island-icon');
+    const tempEl = document.getElementById('selected-island-temp');
+    const conditionEl = document.getElementById('selected-island-condition');
+    const waterEl = document.getElementById('selected-island-water');
+    const windEl = document.getElementById('selected-island-wind');
+    const uvEl = document.getElementById('selected-island-uv');
+    const humidityEl = document.getElementById('selected-island-humidity');
+    const tipEl = document.getElementById('selected-island-tip');
+    const timeEl = document.getElementById('selected-island-time');
+
+    if (nameEl) nameEl.textContent = data.name;
+    if (archipelEl) archipelEl.textContent = data.archipel;
+    if (descEl) descEl.textContent = data.desc;
+    if (iconEl) iconEl.textContent = data.icon;
+    if (tempEl) tempEl.textContent = `${data.temp}°C`;
+    if (conditionEl) conditionEl.textContent = data.condition;
+    if (waterEl) waterEl.textContent = `${data.waterTemp}°C`;
+    if (windEl) windEl.textContent = data.wind;
+    if (uvEl) uvEl.textContent = data.uv;
+    if (humidityEl) humidityEl.textContent = data.humidity;
+    if (tipEl) tipEl.textContent = data.tip;
+
+    // Heure locale en Polynésie
+    if (timeEl) {
+        try {
+            const timeStr = new Intl.DateTimeFormat('fr-FR', {
+                timeZone: 'Pacific/Tahiti',
+                hour: '2-digit', minute: '2-digit'
+            }).format(new Date());
+            timeEl.textContent = `${timeStr} (heure locale)`;
+        } catch(e) {
+            timeEl.textContent = 'UTC-10';
+        }
+    }
+
+    // Mise à jour de l'apparence des cartes
+    document.querySelectorAll('[id^="weather-card-btn-"]').forEach(btn => {
+        btn.className = 'text-left p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between border-gray-200 bg-white hover:border-teal-300 hover:shadow-sm';
+    });
+    const activeBtn = document.getElementById(`weather-card-btn-${islandId}`);
+    if (activeBtn) {
+        activeBtn.className = 'text-left p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between border-amber-400 bg-teal-50 shadow-md ring-2 ring-amber-400/40';
+    }
+
+    // Surbrillance du marqueur sur la carte météo
+    document.querySelectorAll('.weather-marker-bubble').forEach(b => b.classList.remove('active-weather-bubble'));
+    const activeBubble = document.getElementById(`marker-bubble-${islandId}`);
+    if (activeBubble) activeBubble.classList.add('active-weather-bubble');
+
+    // Recentrage animé de la carte météo si demandé
+    if (panMap && weatherMap) {
+        weatherMap.flyTo(data.coords, 9, { duration: 1.0 });
+        const targetMarker = weatherMarkers.find(m => m.id === islandId);
+        if (targetMarker) {
+            targetMarker.marker.openPopup();
+        }
+    }
 }
