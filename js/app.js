@@ -33,7 +33,6 @@ function launchApplication() {
     initWeatherModule();
     renderMainTimeline();
     renderFilters();
-    renderGallery();
     initLightbox();
     initModalKeyListeners();
 

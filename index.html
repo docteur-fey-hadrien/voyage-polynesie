@@ -26,7 +26,7 @@
     <meta http-equiv="Expires" content="0">
 
     <!-- Custom CSS avec version pour le cache -->
-    <link rel="stylesheet" href="css/style.css?v=20261003-3">
+    <link rel="stylesheet" href="css/style.css?v=20261003-4">
 </head>
 <body class="bg-[#FAF7F2] text-[#264653] font-sans antialiased">
 
@@ -48,7 +48,6 @@
                 <a href="#meteo" class="nav-tab-btn"><i class="fas fa-cloud-sun text-teal-600"></i> Météo des Îles</a>
                 <a href="#carte" class="nav-tab-btn"><i class="fas fa-map-marked-alt text-teal-600"></i> Carte</a>
                 <a href="#horloge" class="nav-tab-btn"><i class="fas fa-clock text-teal-600"></i> Horloge</a>
-                <a href="#galerie" class="nav-tab-btn"><i class="fas fa-images text-teal-600"></i> Photos</a>
             </nav>
 
             <div class="flex items-center gap-3">
@@ -584,24 +583,7 @@
         </div>
     </section>
 
-    <!-- SECTION GALERIE PHOTOS -->
-    <section id="galerie" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16">
-        <div class="text-center mb-8">
-            <span class="text-teal-700 font-bold uppercase tracking-widest text-xs bg-teal-100/70 px-3.5 py-1 rounded-full inline-flex items-center gap-1.5 mb-2">
-                <i class="fas fa-camera text-teal-600"></i> Instantanés
-            </span>
-            <h2 class="text-3xl sm:text-4xl font-extrabold font-display text-teal-950">
-                Galerie de Souvenirs
-            </h2>
-            <p class="text-sm text-gray-500 max-w-xl mx-auto mt-1">
-                Les plus beaux lagons, atolls et paysages du séjour. Cliquez sur une photo pour l'afficher en grand écran.
-            </p>
-        </div>
 
-        <div id="photo-gallery" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            <!-- Rempli dynamiquement en JS -->
-        </div>
-    </section>
 
     <!-- MODALE COMPLÈTE DE DÉTAIL D'ÉTAPE ("EN SAVOIR PLUS") -->
     <div id="stage-detail-modal" class="stage-modal-backdrop" onclick="closeStageModalOnBackdrop(event)">
@@ -657,7 +639,7 @@
     </footer>
 
     <!-- SCRIPTS APPLICATIFS : Données directes et Logique avec cache-busting -->
-    <script src="js/trip-data.js?v=20261003-3"></script>
-    <script src="js/app.js?v=20261003-3"></script>
+    <script src="js/trip-data.js?v=20261003-4"></script>
+    <script src="js/app.js?v=20261003-4"></script>
 </body>
 </html>
