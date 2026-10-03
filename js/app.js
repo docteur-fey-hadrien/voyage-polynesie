@@ -982,36 +982,53 @@ function renderFlightsList() {
     const container = document.getElementById('flights-list');
     if (!container || typeof TRIP_FLIGHTS === 'undefined') return;
 
-    container.innerHTML = TRIP_FLIGHTS.map((flight) => {
-        const isInter = flight.category === 'international';
-        const badgeColor = isInter ? 'bg-teal-100 text-teal-900 border-teal-200' : 'bg-amber-100 text-amber-900 border-amber-200';
+    const domesticFlights = TRIP_FLIGHTS.filter(f => f.category === 'domestic');
+    const flightsToShow = domesticFlights.length > 0 ? domesticFlights : TRIP_FLIGHTS;
+
+    container.innerHTML = flightsToShow.map((flight) => {
+        const trackingBtns = (flight.trackingLinks || []).map(link => {
+            let btnStyle = "bg-white hover:bg-gray-100 text-teal-900 border-gray-200";
+            if (link.type === 'fr24') {
+                btnStyle = "bg-amber-400 hover:bg-amber-300 text-teal-950 font-bold border-amber-300";
+            } else if (link.type === 'fa') {
+                btnStyle = "bg-teal-600 hover:bg-teal-700 text-white font-bold border-teal-600";
+            } else if (link.type === 'official') {
+                btnStyle = "bg-sky-50 hover:bg-sky-100 text-sky-900 font-semibold border-sky-200";
+            }
+
+            return `
+                <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl ${btnStyle} border text-xs transition-all duration-150 flex items-center gap-1.5 shadow-sm hover:shadow">
+                    <i class="fas ${link.icon || 'fa-external-link-alt'}"></i>
+                    <span>${link.label}</span>
+                    <i class="fas fa-external-link-alt text-[9px] opacity-70 ml-0.5"></i>
+                </a>
+            `;
+        }).join('');
 
         return `
-            <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200/80 hover:bg-teal-50/50 transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <span class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm ${badgeColor} border">
+            <div class="p-4 sm:p-5 rounded-2xl bg-gray-50/90 border border-gray-200/90 hover:bg-teal-50/40 transition duration-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="flex items-start sm:items-center gap-3.5">
+                    <span class="w-10 h-10 rounded-2xl flex items-center justify-center text-base font-bold shadow-sm bg-amber-100 text-amber-950 border border-amber-200 flex-shrink-0 mt-0.5 sm:mt-0">
                         ✈
                     </span>
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-teal-950 text-sm sm:text-base">${flight.route}</span>
-                            <span class="font-mono text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">${flight.flightNumber}</span>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <span class="font-extrabold text-teal-950 text-sm sm:text-base">${flight.route}</span>
+                            <span class="font-mono text-xs font-black text-amber-800 bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300">${flight.flightNumber}</span>
+                            <span class="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">${flight.type}</span>
                         </div>
-                        <span class="text-xs text-gray-500 block">
-                            ${flight.date} • ${flight.times} • ${flight.airline} (${flight.aircraft})
-                        </span>
+                        <div class="text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span><i class="fas fa-calendar-day text-teal-600 mr-1"></i>${flight.date}</span>
+                            <span>•</span>
+                            <span><i class="fas fa-clock text-amber-600 mr-1"></i>${flight.times}</span>
+                            <span>•</span>
+                            <span><i class="fas fa-plane text-gray-400 mr-1"></i>${flight.airline} (${flight.aircraft})</span>
+                        </div>
+                        ${flight.notes ? `<p class="text-[11px] text-gray-500 mt-1 italic">${flight.notes}</p>` : ''}
                     </div>
                 </div>
-                <div class="flex items-center gap-2 text-xs w-full sm:w-auto justify-end">
-                    ${flight.flightNumber.startsWith('TN') ? `
-                        <a href="https://www.flightaware.com/live/flight/${flight.flightNumber === 'TN57' ? 'THT57' : 'THT8'}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-teal-600 text-white font-bold text-xs hover:bg-teal-700 transition flex items-center gap-1 shadow-sm">
-                            <i class="fas fa-satellite-dish"></i> Suivre en direct
-                        </a>
-                    ` : `
-                        <a href="https://www.flightradar24.com/data/airlines/vt-vta" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-white hover:bg-gray-100 text-teal-900 font-semibold text-xs border border-gray-200 transition flex items-center gap-1 shadow-sm">
-                            <i class="fas fa-plane"></i> Radar Air Tahiti
-                        </a>
-                    `}
+                <div class="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-gray-200/60 lg:justify-end">
+                    ${trackingBtns}
                 </div>
             </div>
         `;

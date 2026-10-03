@@ -257,8 +257,10 @@ const TRIP_STAGES = [
             "Arrivée dans le 2e plus grand atoll du monde"
         ],
         externalLinks: [
-            { label: "Air Tahiti (Pass Tuamotu)", url: "https://www.airtahiti.com/", icon: "fa-plane", color: "teal" },
-            { label: "Guide Bagages Air Tahiti", url: "https://www.airtahiti.com/fr/bagages", icon: "fa-suitcase", color: "amber" }
+            { label: "Flightradar24 VT553", url: "https://www.flightradar24.com/data/flights/vt553", icon: "fa-plane", color: "amber" },
+            { label: "FlightAware VT553", url: "https://www.flightaware.com/live/flight/VTA553", icon: "fa-satellite-dish", color: "teal" },
+            { label: "Statut Direct Air Tahiti", url: "https://www.airtahiti.pf/arrivees-et-departs-du-jour", icon: "fa-clock", color: "blue" },
+            { label: "Guide Bagages Air Tahiti (5 kg)", url: "https://www.airtahiti.com/fr/bagages", icon: "fa-suitcase", color: "emerald" }
         ],
         mood: "🐬 Émerveillement Corallien",
         weather: "29°C • Grand bleu"
@@ -354,8 +356,11 @@ const TRIP_STAGES = [
             "Vue panoramique sur Bora Bora depuis le Raiatea Lodge"
         ],
         externalLinks: [
-            { label: "Air Tahiti (Pass Sous-le-Vent)", url: "https://www.airtahiti.com/", icon: "fa-plane", color: "teal" },
-            { label: "Aéroport Raiatea Uturoa", url: "https://www.tahiti-aeroport.pf/", icon: "fa-building", color: "blue" }
+            { label: "Flightradar24 VT537", url: "https://www.flightradar24.com/data/flights/vt537", icon: "fa-plane", color: "amber" },
+            { label: "Flightradar24 VT464", url: "https://www.flightradar24.com/data/flights/vt464", icon: "fa-plane", color: "amber" },
+            { label: "FlightAware VT537", url: "https://www.flightaware.com/live/flight/VTA537", icon: "fa-satellite-dish", color: "teal" },
+            { label: "FlightAware VT464", url: "https://www.flightaware.com/live/flight/VTA464", icon: "fa-satellite-dish", color: "teal" },
+            { label: "Statut Direct Air Tahiti", url: "https://www.airtahiti.pf/arrivees-et-departs-du-jour", icon: "fa-clock", color: "blue" }
         ],
         mood: "🛶 Immersion Sacrée",
         weather: "28°C • Brise parfumée"
@@ -542,8 +547,11 @@ const TRIP_STAGES = [
             "Accueil authentique et navette lagon vers la Pension Papahani"
         ],
         externalLinks: [
-            { label: "Air Tahiti — Liaisons Maupiti", url: "https://www.airtahiti.com/", icon: "fa-plane", color: "teal" },
-            { label: "Infos Aérodrome Maupiti", url: "https://www.tahiti-aeroport.pf/", icon: "fa-info-circle", color: "amber" }
+            { label: "Flightradar24 VT212 (Raiatea➔Bora)", url: "https://www.flightradar24.com/data/flights/vt212", icon: "fa-plane", color: "amber" },
+            { label: "Flightradar24 VT769 (Bora➔Maupiti)", url: "https://www.flightradar24.com/data/flights/vt769", icon: "fa-plane", color: "amber" },
+            { label: "FlightAware VT212", url: "https://www.flightaware.com/live/flight/VTA212", icon: "fa-satellite-dish", color: "teal" },
+            { label: "FlightAware VT769", url: "https://www.flightaware.com/live/flight/VTA769", icon: "fa-satellite-dish", color: "teal" },
+            { label: "Statut Direct Air Tahiti", url: "https://www.airtahiti.pf/arrivees-et-departs-du-jour", icon: "fa-clock", color: "blue" }
         ],
         mood: "🏖️ Paradis Sauvage",
         weather: "28°C • Brise tropicale"
@@ -639,8 +647,10 @@ const TRIP_STAGES = [
             "Installation à Papeete pour clore l'aventure en douceur"
         ],
         externalLinks: [
-            { label: "Air Tahiti (Pass Inter-Îles)", url: "https://www.airtahiti.com/", icon: "fa-plane", color: "teal" },
-            { label: "Arrivées Aéroport Faa'a", url: "https://www.tahiti-aeroport.pf/", icon: "fa-plane-arrival", color: "blue" }
+            { label: "Flightradar24 VT741", url: "https://www.flightradar24.com/data/flights/vt741", icon: "fa-plane", color: "amber" },
+            { label: "FlightAware VT741", url: "https://www.flightaware.com/live/flight/VTA741", icon: "fa-satellite-dish", color: "teal" },
+            { label: "Statut Direct Air Tahiti", url: "https://www.airtahiti.pf/arrivees-et-departs-du-jour", icon: "fa-clock", color: "blue" },
+            { label: "Aéroport Tahiti Faa'a", url: "https://www.tahiti-aeroport.pf/", icon: "fa-building", color: "emerald" }
         ],
         mood: "🏙️ Douce Nostalgie",
         weather: "28°C • Coucher de soleil doré"
@@ -750,128 +760,115 @@ const TRIP_STAGES = [
 // =============================================================================
 const TRIP_FLIGHTS = [
     {
-        category: "international",
-        type: "Vol Aller International",
-        flightNumber: "TN007 (TN57)",
-        airline: "Air Tahiti Nui",
-        aircraft: "Boeing 787-9 Dreamliner",
-        bookingRef: "Réf. Confirmée",
-        departureDate: "Vendredi 09 Octobre 2026",
-        departureTime: "12h05",
-        departureAirport: "Paris Roissy Charles de Gaulle (CDG)",
-        transit: "Escale technique à Los Angeles (LAX) • ESTA requis",
-        arrivalDate: "Vendredi 09 Octobre 2026",
-        arrivalTime: "21h45 (heure locale Tahiti)",
-        arrivalAirport: "Tahiti Faa'a (PPT)",
-        duration: "Env. 22h de voyage (décalage horaire -12h)",
-        baggage: "Soute : 1 bagage 23 kg/pers (bébé 10 kg) • Cabine : 10 kg + accessoire 3 kg",
-        notes: "Accueil avec colliers de fleurs de tiaré fraîches à l'arrivée et transfert au Tahiti by Pearl Resort.",
-        externalLinks: [
-            { label: "Suivi FlightAware TN57", url: "https://www.flightaware.com/live/flight/THT57", icon: "fa-satellite-dish" },
-            { label: "Flightradar24 TN57", url: "https://www.flightradar24.com/data/flights/tn57", icon: "fa-plane" },
-            { label: "Aéroport Tahiti Faa'a", url: "https://www.tahiti-aeroport.pf/", icon: "fa-building" }
-        ],
-        status: "upcoming"
-    },
-    {
         category: "domestic",
         type: "Vol Inter-Îles #1",
-        flightNumber: "Air Tahiti (Pass Inter-Îles)",
+        flightNumber: "VT553",
         airline: "Air Tahiti",
         aircraft: "ATR 72-600",
+        route: "Tahiti Faa'a (PPT) ➔ Rangiroa (RGI)",
+        date: "Vendredi 16 Octobre 2026",
+        times: "13h45 ➔ 14h45 (1h00 de vol)",
         bookingRef: "Pass Inter-Îles",
         departureDate: "Vendredi 16 Octobre 2026",
-        departureTime: "Matinée / Après-midi",
-        departureAirport: "Tahiti Faa'a (PPT) (après traversée ferry depuis Moorea)",
-        transit: "Vol direct vers les Tuamotu",
+        departureTime: "13h45",
+        departureAirport: "Tahiti Faa'a (PPT)",
         arrivalDate: "Vendredi 16 Octobre 2026",
         arrivalTime: "14h45",
         arrivalAirport: "Rangiroa (RGI)",
-        duration: "Env. 1h00",
-        baggage: "Soute : 23 kg/pers • Cabine : 5 kg max strict",
-        notes: "Survol exceptionnel du lagon infini des Tuamotu à l'atterrissage. Transfert vers la pension Raira Lagon.",
-        status: "upcoming"
+        duration: "1h00",
+        baggage: "Soute : 23 kg/pers • Cabine : 5 kg strict",
+        notes: "Survol grandiose de l'atoll géant des Tuamotu à l'approche de la piste.",
+        status: "upcoming",
+        trackingLinks: [
+            { label: "Flightradar24 VT553", url: "https://www.flightradar24.com/data/flights/vt553", icon: "fa-plane", type: "fr24" },
+            { label: "FlightAware VT553", url: "https://www.flightaware.com/live/flight/VTA553", icon: "fa-satellite-dish", type: "fa" },
+            { label: "Statut Air Tahiti", url: "https://www.airtahiti.pf/arrivees-et-departs-du-jour", icon: "fa-clock", type: "official" }
+        ]
     },
     {
         category: "domestic",
         type: "Vol Inter-Îles #2",
-        flightNumber: "Air Tahiti (Pass Inter-Îles)",
+        flightNumber: "VT537 & VT464",
         airline: "Air Tahiti",
         aircraft: "ATR 72-600",
+        route: "Rangiroa (RGI) ➔ Tahiti (PPT) ➔ Raiatea (RFP)",
+        date: "Lundi 19 Octobre 2026",
+        times: "12h55 ➔ 13h55 (VT537) • Transit PPT • 16h45 ➔ 17h30 (VT464)",
         bookingRef: "Pass Inter-Îles",
         departureDate: "Lundi 19 Octobre 2026",
-        departureTime: "Matinée",
+        departureTime: "12h55 (RGI) & 16h45 (PPT)",
         departureAirport: "Rangiroa (RGI)",
-        transit: "Escale de correspondance à Tahiti Faa'a (PPT)",
+        transit: "Escale technique à Tahiti Faa'a (PPT)",
         arrivalDate: "Lundi 19 Octobre 2026",
-        arrivalTime: "Après-midi",
-        arrivalAirport: "Raiatea - Uturoa (RFP)",
-        duration: "Env. 2h30 (incluant escale)",
-        baggage: "Soute : 23 kg/pers • Cabine : 5 kg max",
-        notes: "Arrivée sur l'île sacrée des îles Sous-le-Vent. Transfert vers le Raiatea Lodge Hotel.",
-        status: "upcoming"
+        arrivalTime: "17h30",
+        arrivalAirport: "Raiatea Uturoa (RFP)",
+        duration: "Env. 2h30",
+        baggage: "Soute : 23 kg/pers • Cabine : 5 kg strict",
+        notes: "Des atolls coralliens des Tuamotu aux îles Sous-le-Vent volcaniques.",
+        status: "upcoming",
+        trackingLinks: [
+            { label: "Flightradar24 VT537", url: "https://www.flightradar24.com/data/flights/vt537", icon: "fa-plane", type: "fr24" },
+            { label: "Flightradar24 VT464", url: "https://www.flightradar24.com/data/flights/vt464", icon: "fa-plane", type: "fr24" },
+            { label: "FlightAware VT537", url: "https://www.flightaware.com/live/flight/VTA537", icon: "fa-satellite-dish", type: "fa" },
+            { label: "FlightAware VT464", url: "https://www.flightaware.com/live/flight/VTA464", icon: "fa-satellite-dish", type: "fa" },
+            { label: "Statut Air Tahiti", url: "https://www.airtahiti.pf/arrivees-et-departs-du-jour", icon: "fa-clock", type: "official" }
+        ]
     },
     {
         category: "domestic",
         type: "Vol Inter-Îles #3",
-        flightNumber: "Air Tahiti (Pass Inter-Îles)",
+        flightNumber: "VT212 & VT769",
         airline: "Air Tahiti",
         aircraft: "ATR 42 / ATR 72",
+        route: "Raiatea (RFP) ➔ Bora Bora (BOB) ➔ Maupiti (MAU)",
+        date: "Dimanche 25 Octobre 2026",
+        times: "13h55 ➔ 14h15 (VT212) • Escale BOB • 15h10 ➔ 15h30 (VT769)",
         bookingRef: "Pass Inter-Îles",
         departureDate: "Dimanche 25 Octobre 2026",
-        departureTime: "Matinée",
-        departureAirport: "Raiatea - Uturoa (RFP) (après navette lagon depuis Taha'a)",
+        departureTime: "13h55 (RFP) & 15h10 (BOB)",
+        departureAirport: "Raiatea Uturoa (RFP)",
         transit: "Escale technique à Bora Bora (BOB)",
         arrivalDate: "Dimanche 25 Octobre 2026",
         arrivalTime: "15h30",
         arrivalAirport: "Maupiti (MAU)",
-        duration: "Env. 1h15 (avec survol spectaculaire du mont Otemanu de Bora Bora)",
-        baggage: "Soute : 23 kg/pers • Cabine : 5 kg max",
-        notes: "Atterrissage sur le motu de Maupiti, transfert en navette lagon vers le motu Tiapaa (Pension Papahani).",
-        status: "upcoming"
+        duration: "Env. 1h15",
+        baggage: "Soute : 23 kg/pers • Cabine : 5 kg strict",
+        notes: "Survol panoramique du mont Otemanu de Bora Bora et atterrissage sur le motu corallien de Maupiti.",
+        status: "upcoming",
+        trackingLinks: [
+            { label: "Flightradar24 VT212", url: "https://www.flightradar24.com/data/flights/vt212", icon: "fa-plane", type: "fr24" },
+            { label: "Flightradar24 VT769", url: "https://www.flightradar24.com/data/flights/vt769", icon: "fa-plane", type: "fr24" },
+            { label: "FlightAware VT212", url: "https://www.flightaware.com/live/flight/VTA212", icon: "fa-satellite-dish", type: "fa" },
+            { label: "FlightAware VT769", url: "https://www.flightaware.com/live/flight/VTA769", icon: "fa-satellite-dish", type: "fa" },
+            { label: "Statut Air Tahiti", url: "https://www.airtahiti.pf/arrivees-et-departs-du-jour", icon: "fa-clock", type: "official" }
+        ]
     },
     {
         category: "domestic",
         type: "Vol Inter-Îles #4",
-        flightNumber: "Air Tahiti (Pass Inter-Îles)",
+        flightNumber: "VT741",
         airline: "Air Tahiti",
         aircraft: "ATR 42-600",
+        route: "Maupiti (MAU) ➔ Tahiti Faa'a (PPT)",
+        date: "Mercredi 28 Octobre 2026",
+        times: "09h40 ➔ 10h30 (50 min de vol)",
         bookingRef: "Pass Inter-Îles",
         departureDate: "Mercredi 28 Octobre 2026",
-        departureTime: "Après-midi",
+        departureTime: "09h40",
         departureAirport: "Maupiti (MAU)",
-        transit: "Vol direct",
+        transit: "Vol direct vers Tahiti",
         arrivalDate: "Mercredi 28 Octobre 2026",
         arrivalTime: "10h30",
         arrivalAirport: "Tahiti Faa'a (PPT)",
-        duration: "Env. 55 minutes",
-        baggage: "Soute : 23 kg/pers • Cabine : 5 kg max",
-        notes: "Retour sur l'île principale de Tahiti. Transfert vers la résidence Reva Tahiti.",
-        status: "upcoming"
-    },
-    {
-        category: "international",
-        type: "Vol Retour International",
-        flightNumber: "TN008 (TN8)",
-        airline: "Air Tahiti Nui",
-        aircraft: "Boeing 787-9 Dreamliner",
-        bookingRef: "Réf. Confirmée",
-        departureDate: "Vendredi 30 Octobre 2026",
-        departureTime: "23h45",
-        departureAirport: "Tahiti Faa'a (PPT)",
-        transit: "Escale technique à Los Angeles (LAX)",
-        arrivalDate: "Dimanche 01 Novembre 2026",
-        arrivalTime: "09h05 (heure locale Paris)",
-        arrivalAirport: "Paris Roissy Charles de Gaulle (CDG)",
-        duration: "Env. 21h20 de vol (+2 jours calendaires)",
-        baggage: "Soute : 1 bagage 23 kg/pers (bébé 10 kg) • Cabine : 10 kg + accessoire 3 kg",
-        notes: "Dernière nuit polynésienne à bord avec colliers de coquillages d'au revoir. Récupération du véhicule au Parking PR Eco CDG.",
-        externalLinks: [
-            { label: "Suivi FlightAware TN8", url: "https://www.flightaware.com/live/flight/THT8", icon: "fa-satellite-dish" },
-            { label: "Flightradar24 TN8", url: "https://www.flightradar24.com/data/flights/tn8", icon: "fa-plane" },
-            { label: "Paris Aéroport CDG", url: "https://www.parisaeroport.fr/passagers/vols-et-compagnies", icon: "fa-building" }
-        ],
-        status: "upcoming"
+        duration: "50 min",
+        baggage: "Soute : 23 kg/pers • Cabine : 5 kg strict",
+        notes: "Dernière liaison aérienne du Pass Inter-Îles et retour sur l'île principale de Tahiti.",
+        status: "upcoming",
+        trackingLinks: [
+            { label: "Flightradar24 VT741", url: "https://www.flightradar24.com/data/flights/vt741", icon: "fa-plane", type: "fr24" },
+            { label: "FlightAware VT741", url: "https://www.flightaware.com/live/flight/VTA741", icon: "fa-satellite-dish", type: "fa" },
+            { label: "Statut Air Tahiti", url: "https://www.airtahiti.pf/arrivees-et-departs-du-jour", icon: "fa-clock", type: "official" }
+        ]
     }
 ];
 
@@ -1212,9 +1209,14 @@ const DAILY_PROGRAM = [
                     "icon": "fa-plane"
                 },
                 {
-                    "label": "Site Air Tahiti",
-                    "url": "https://www.airtahiti.fr/",
-                    "icon": "fa-external-link-alt"
+                    "label": "FlightAware VT553",
+                    "url": "https://www.flightaware.com/live/flight/VTA553",
+                    "icon": "fa-satellite-dish"
+                },
+                {
+                    "label": "Statut Direct Air Tahiti",
+                    "url": "https://www.airtahiti.pf/arrivees-et-departs-du-jour",
+                    "icon": "fa-clock"
                 }
             ]
         }
@@ -1335,6 +1337,21 @@ const DAILY_PROGRAM = [
                     "label": "Flightradar24 VT464",
                     "url": "https://www.flightradar24.com/data/flights/vt464",
                     "icon": "fa-plane"
+                },
+                {
+                    "label": "FlightAware VT537",
+                    "url": "https://www.flightaware.com/live/flight/VTA537",
+                    "icon": "fa-satellite-dish"
+                },
+                {
+                    "label": "FlightAware VT464",
+                    "url": "https://www.flightaware.com/live/flight/VTA464",
+                    "icon": "fa-satellite-dish"
+                },
+                {
+                    "label": "Statut Direct Air Tahiti",
+                    "url": "https://www.airtahiti.pf/arrivees-et-departs-du-jour",
+                    "icon": "fa-clock"
                 }
             ]
         }
@@ -1562,6 +1579,21 @@ const DAILY_PROGRAM = [
                     "label": "Flightradar24 VT769",
                     "url": "https://www.flightradar24.com/data/flights/vt769",
                     "icon": "fa-plane"
+                },
+                {
+                    "label": "FlightAware VT212",
+                    "url": "https://www.flightaware.com/live/flight/VTA212",
+                    "icon": "fa-satellite-dish"
+                },
+                {
+                    "label": "FlightAware VT769",
+                    "url": "https://www.flightaware.com/live/flight/VTA769",
+                    "icon": "fa-satellite-dish"
+                },
+                {
+                    "label": "Statut Direct Air Tahiti",
+                    "url": "https://www.airtahiti.pf/arrivees-et-departs-du-jour",
+                    "icon": "fa-clock"
                 }
             ]
         }
@@ -1674,9 +1706,14 @@ const DAILY_PROGRAM = [
                     "icon": "fa-plane"
                 },
                 {
-                    "label": "Site Air Tahiti",
-                    "url": "https://www.airtahiti.fr/",
-                    "icon": "fa-external-link-alt"
+                    "label": "FlightAware VT741",
+                    "url": "https://www.flightaware.com/live/flight/VTA741",
+                    "icon": "fa-satellite-dish"
+                },
+                {
+                    "label": "Statut Direct Air Tahiti",
+                    "url": "https://www.airtahiti.pf/arrivees-et-departs-du-jour",
+                    "icon": "fa-clock"
                 }
             ]
         }
